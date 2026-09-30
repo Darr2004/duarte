@@ -16,3 +16,4 @@ uploads/profile/*
 
 # App builds
 *.apk
+!duarte-app.apk
