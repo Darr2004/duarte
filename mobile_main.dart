@@ -571,6 +571,168 @@ class NotificationsNotifier extends ChangeNotifier {
 final globalNotifications = NotificationsNotifier();
 
 // ---------------------------------------------------------
+// In-App Auto-Update Manager (One-Click App Updates)
+// ---------------------------------------------------------
+class AppUpdateChecker {
+  static const int currentVersionCode = 1;
+  static const String currentVersionName = '1.0.0';
+  static const MethodChannel _channel = MethodChannel('com.duarte.duarte_app/updater');
+
+  static bool _hasPromptedThisSession = false;
+
+  static Future<Map<String, dynamic>?> checkForUpdate({bool silent = true}) async {
+    try {
+      final baseUrl = await AppConfig.getBaseUrl();
+      final uri = Uri.parse('$baseUrl/version.php');
+      final res = await http.get(uri).timeout(const Duration(seconds: 6));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        return data;
+      }
+    } catch (e) {
+      debugPrint('[AppUpdateChecker] Check failed: $e');
+    }
+    return null;
+  }
+
+  static Future<void> checkAndShowPrompt(BuildContext context, {bool manual = false}) async {
+    if (!manual && _hasPromptedThisSession) return;
+
+    final info = await checkForUpdate(silent: !manual);
+    if (!context.mounted) return;
+
+    if (info == null) {
+      if (manual) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(globalLanguage.isTagalog ? 'Hindi masuri ang update sa ngayon.' : 'Unable to check for updates right now.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    final latestCode = (info['latest_version_code'] as num?)?.toInt() ?? 1;
+    final latestName = (info['latest_version_name'] ?? '1.0.0').toString();
+    final apkUrl = (info['apk_url'] ?? 'https://duarte.onrender.com/duarte-app.apk').toString();
+    final notes = (info['release_notes'] ?? '').toString();
+    final force = info['force_update'] == true;
+
+    if (latestCode > currentVersionCode) {
+      _hasPromptedThisSession = true;
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: !force,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: AppColors.amberTint, borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.system_update_rounded, color: AppColors.amber, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  globalLanguage.isTagalog ? 'May Bagong Update!' : 'Update Available!',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.ink),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'v$latestName (${globalLanguage.isTagalog ? 'Kasalukuyan' : 'Current'}: v$currentVersionName)',
+                style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.amber, fontSize: 13),
+              ),
+              const SizedBox(height: 10),
+              if (notes.isNotEmpty) ...[
+                Text(
+                  globalLanguage.isTagalog ? 'Mga Pagbabago:' : 'What\'s New:',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.inkSoft),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.paper,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.line),
+                  ),
+                  child: Text(notes, style: const TextStyle(fontSize: 12.5, height: 1.4, color: AppColors.ink)),
+                ),
+                const SizedBox(height: 12),
+              ],
+              Text(
+                globalLanguage.isTagalog
+                    ? 'I-click ang button sa ibaba para i-download at i-install ang pinakabagong bersyon.'
+                    : 'Click the button below to download and install the latest version.',
+                style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft),
+              ),
+            ],
+          ),
+          actions: [
+            if (!force)
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(globalLanguage.isTagalog ? 'Mamaya Na' : 'Later', style: const TextStyle(color: AppColors.inkSoft)),
+              ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.amber,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                try {
+                  await _channel.invokeMethod('openUrl', {'url': apkUrl});
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          globalLanguage.isTagalog
+                              ? 'Nagsisimula ang download... Pindutin ang na-download na file para i-install.'
+                              : 'Download starting... Tap the downloaded file to install.',
+                        ),
+                        backgroundColor: AppColors.greenOk,
+                        duration: const Duration(seconds: 6),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  debugPrint('Launch failed: $e');
+                }
+              },
+              icon: const Icon(Icons.download_rounded, size: 18),
+              label: Text(globalLanguage.isTagalog ? 'I-update Ngayon' : 'Update Now'),
+            ),
+          ],
+        ),
+      );
+    } else if (manual) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            globalLanguage.isTagalog
+                ? 'Nasa pinakabagong bersyon ka na! (v$currentVersionName)'
+                : 'You are using the latest version! (v$currentVersionName)',
+          ),
+          backgroundColor: AppColors.greenOk,
+        ),
+      );
+    }
+  }
+}
+
+// ---------------------------------------------------------
 // App Configuration & State Manager
 // ---------------------------------------------------------
 class AppConfig {
@@ -2111,6 +2273,14 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   String? _errorMessage;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppUpdateChecker.checkAndShowPrompt(context);
+    });
+  }
+
   Future<void> _handleLogin() async {
     final username = _usernameCtrl.text.trim();
     final password = _passwordCtrl.text.trim();
@@ -2229,7 +2399,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 ActionChip(
                   label: const Text('Cloud Server'),
-                  onPressed: () => ctrl.text = AppConfig.ngrokUrl,
+                  onPressed: () => ctrl.text = AppConfig.renderUrl,
                 ),
                 ActionChip(
                   label: const Text('Local Network'),
@@ -11961,7 +12131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 ActionChip(
                   label: const Text('Cloud Server'),
-                  onPressed: () => ctrl.text = AppConfig.ngrokUrl,
+                  onPressed: () => ctrl.text = AppConfig.renderUrl,
                 ),
                 ActionChip(
                   label: const Text('Local Network'),
@@ -12168,6 +12338,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   if (mounted) setState(() {});
                 }
               },
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // App Version & Check for Updates Card
+          Card(
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.blueTint,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.blueBorder),
+                ),
+                child: const Icon(Icons.system_update_rounded, color: AppColors.blueInfo, size: 22),
+              ),
+              title: Text(
+                globalLanguage.isTagalog ? 'Suriin ang Update ng App' : 'Check for App Updates',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.ink),
+              ),
+              subtitle: Text(
+                'v${AppUpdateChecker.currentVersionName} • Online Cloud Ready',
+                style: const TextStyle(fontSize: 12, color: AppColors.inkSoft),
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.inkSoft),
+              onTap: () => AppUpdateChecker.checkAndShowPrompt(context, manual: true),
             ),
           ),
 
