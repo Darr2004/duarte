@@ -39,6 +39,7 @@ COPY . /var/www/html/
 
 # Ensure uploads directory exists and permissions are writable
 RUN mkdir -p /var/www/html/uploads \
+    && ln -s /var/www/html /var/www/html/duarte \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/uploads
 

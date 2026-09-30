@@ -36,7 +36,13 @@ if (!defined('DB_PORT')) {
     define('DB_PORT', getenv('DB_PORT') ?: '3306');
 }
 if (!defined('BASE_URL')) {
-    define('BASE_URL', getenv('BASE_URL') !== false ? getenv('BASE_URL') : '/duarte');
+    if (getenv('BASE_URL') !== false) {
+        define('BASE_URL', getenv('BASE_URL'));
+    } else {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $is_render = (strpos($host, 'onrender.com') !== false);
+        define('BASE_URL', $is_render ? '' : '/duarte');
+    }
 }
 
 // ---- App settings ----
