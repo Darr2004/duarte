@@ -1,0 +1,520 @@
+/* ==========================================================================
+   Layout — App Shell, Executive Sidebar, Navigation & Page Header
+   Theme: Executive Brown & Warm Walnut
+   ========================================================================== */
+
+/* ---------- Layout: App shell ---------- */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---------- Sidebar: Refined Slate Graphite Shell ---------- */
+.sidebar {
+  width: 272px;
+  flex-shrink: 0;
+  background: var(--charcoal-2);
+  border-right: 1px solid var(--charcoal-border);
+  box-shadow: 2px 0 18px rgba(17, 22, 27, 0.18);
+  color: #E2E8F0;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+  scrollbar-width: thin;
+  scrollbar-color: var(--charcoal-hover) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--charcoal-hover);
+  border-radius: var(--radius-pill);
+}
+
+.sidebar .brand {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--amber-on-dark);
+  border-bottom: 2px solid var(--amber-gold);
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo-img {
+  height: 38px;
+  width: auto;
+  max-width: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.brand-details {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  display: block;
+  line-height: 1.2;
+}
+
+.sidebar .brand small {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: #94A3B8;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  margin-top: 0.2rem;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ---------- Nav Section Labels ---------- */
+.nav-section-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7A8B9E;
+  padding: 0 0.85rem;
+  margin: 1.25rem 0 0.45rem;
+}
+
+.sidebar nav .nav-section-label:first-child {
+  margin-top: 0.1rem;
+}
+
+/* ---------- Nav Links ---------- */
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #CBD5E1;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.35;
+  border-left: 3px solid transparent;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.sidebar nav a span {
+  min-width: 0;
+  text-decoration: none;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  opacity: 0.75;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.sidebar nav a:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.sidebar nav a:hover .nav-icon {
+  opacity: 1;
+  transform: scale(1.06);
+}
+
+.sidebar nav a.active {
+  background: rgba(168, 116, 66, 0.15);
+  color: var(--amber-on-dark);
+  font-weight: 600;
+  border-left-color: var(--amber-gold);
+  text-decoration: none;
+}
+
+.sidebar nav a.active .nav-icon {
+  opacity: 1;
+  color: var(--amber-gold);
+}
+
+/* ---------- Nav Group (Submenus) ---------- */
+.nav-group {
+  margin-bottom: 0.15rem;
+}
+
+.nav-group .nav-parent {
+  margin-bottom: 0;
+  position: relative;
+  padding-right: 2.1rem;
+}
+
+.nav-group.is-open .nav-parent {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFDF9;
+}
+
+.nav-group.is-open .nav-parent .nav-icon {
+  opacity: 0.95;
+}
+
+.nav-parent-toggle {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #A69684;
+  padding: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.nav-parent-toggle:hover {
+  color: #FFFDF9;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.nav-group.is-open .nav-chevron {
+  transform: rotate(90deg);
+}
+
+.nav-subnav {
+  display: none;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-left: 1.4rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  margin-top: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.nav-group.is-open .nav-subnav {
+  display: flex;
+}
+
+.nav-subnav a {
+  color: #94A3B8;
+  font-size: 0.88rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid transparent;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.nav-subnav a:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+}
+
+.nav-subnav a.active {
+  background: rgba(168, 116, 66, 0.15);
+  color: var(--amber-on-dark);
+  font-weight: 600;
+  border-left-color: var(--amber-gold);
+}
+
+/* ---------- User Profile Chip (Bottom of Sidebar) ---------- */
+.sidebar .user-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.25rem;
+  font-size: 0.92rem;
+}
+
+.user-chip-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.avatar-circle-lg {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--charcoal-hover);
+  border: 2px solid var(--amber-gold);
+  color: var(--amber-on-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-circle-xl {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--charcoal-2);
+  border: 3px solid var(--amber-gold);
+  color: var(--amber-on-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-chip-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.user-chip-name {
+  font-weight: 600;
+  color: #FFFDF9;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar .user-chip .role {
+  display: inline-block;
+  max-width: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--charcoal);
+  background: var(--amber-gold);
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+}
+
+.role-position {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: #BDB0A0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.user-chip-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.user-chip-links .settings-link,
+.user-chip-links .logout-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  color: #D6C7B6;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  text-decoration: none;
+}
+
+.settings-link svg,
+.logout-link svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.settings-link:hover,
+.settings-link.active {
+  background: var(--amber);
+  color: #FFFDF9;
+  border-color: var(--amber);
+  text-decoration: none;
+}
+
+.logout-link:hover {
+  background: var(--red-danger);
+  color: #FFFDF9;
+  border-color: var(--red-danger);
+  text-decoration: none;
+}
+
+/* ---------- Main Content Canvas ---------- */
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-8) 2.5rem;
+  margin-left: 272px;
+  position: relative;
+}
+
+.page-narrow {
+  max-width: 960px;
+}
+
+.two-col-cards {
+  display: flex;
+  gap: 1.25rem;
+  align-items: stretch;
+  margin-bottom: 1.5rem;
+}
+
+.two-col-cards .card {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .two-col-cards {
+    flex-direction: column;
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+  margin-bottom: 0.75rem;
+  transition: color 0.15s ease;
+}
+
+.back-link:hover {
+  color: var(--amber);
+  text-decoration: none;
+}
+
+/* ---------- Page Header (Crisp Executive Styling) ---------- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.page-header h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.page-header .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.page-header .eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber-gold);
+}
+
+/* Cart Icon Button */
+.cart-icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--charcoal-2);
+  border: 1px solid var(--amber);
+  color: var(--amber-on-dark);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.cart-icon-btn:hover {
+  background: var(--charcoal);
+  border-color: var(--amber-gold);
+  transform: translateY(-1px);
+  color: #FFFDF9;
+}
+
+.cart-icon-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--amber-gold);
+  color: #FFF;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 19px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

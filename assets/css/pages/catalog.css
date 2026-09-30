@@ -1,0 +1,62 @@
+/* ==========================================================================
+   Page: Catalog
+   ========================================================================== */
+
+/* ---------- Catalog ---------- */
+.filter-bar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.filter-bar .form-group { margin-bottom: 0; min-width: 180px; }
+.filter-bar .form-group.grow { flex: 1; min-width: 220px; }
+
+/* Paired date inputs (e.g. audit log "Date range") — kept as one flex
+   item so the pair wraps to the next line together instead of one
+   date field splitting off on its own and leaving an orphaned,
+   oddly-spaced row. */
+.filter-date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.filter-date-range input[type="date"] { min-width: 0; flex: 1; }
+.filter-date-sep { color: var(--ink-soft); }
+ 
+/* Auto-filter: eliminate redundant manual submit buttons across all filter bars */
+.filter-bar button[type="submit"]:not(.btn-keep) {
+  display: none !important;
+}
+.filter-bar.is-filtering {
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+/* Polished Clear Filter Button */
+.filter-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 38px;
+  padding: 0 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  transition: all 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+  margin-bottom: 0;
+}
+.filter-clear-btn:hover {
+  background: var(--surface-hover);
+  color: var(--red-danger);
+  border-color: var(--red-danger);
+  border-style: solid;
+  text-decoration: none;
+}

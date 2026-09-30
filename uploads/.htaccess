@@ -1,0 +1,23 @@
+# Prevent script execution inside uploads
+<FilesMatch "\.(php|phtml|php3|php4|php5|phps|phar|pl|py|cgi)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# Allow CORS for static image assets
+<IfModule mod_headers.c>
+    <FilesMatch "\.(png|jpe?g|webp|gif)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+</IfModule>

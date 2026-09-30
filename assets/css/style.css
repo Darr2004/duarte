@@ -1,0 +1,30 @@
+/* ==========================================================================
+   DuaRTE — Stylesheet manifest
+   ==========================================================================
+   Split into one file per concern so a change to (say) modals never
+   requires scrolling through table or login-page rules to find it.
+   Load order matters: tokens/base/layout first, then shared components,
+   then the more specific/overriding files last.
+   Updated: 2026-09-12 (Search suggest opaque dropdown fix)
+   ========================================================================== */
+
+/* 1. Foundation */
+@import url("tokens.css");
+@import url("base.css");
+@import url("layout.css");
+
+/* 2. Shared building blocks */
+@import url("buttons-forms.css");
+@import url("components.css");
+@import url("modals.css");
+@import url("tables.css");
+@import url("reports.css");
+@import url("nav-mobile.css");
+
+/* 3. Page-specific (most specific, loaded last so they can override
+      shared component rules where a page needs to diverge) */
+@import url("pages/login.css");
+@import url("pages/catalog.css");
+@import url("pages/dashboard.css");
+@import url("verify.css");
+/* v2.1: refined executive desktop utility dock */

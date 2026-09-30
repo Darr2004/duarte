@@ -1,0 +1,746 @@
+/* ==========================================================================
+   Modals — cart drawer, item detail modal, quantity stepper,
+   notification modal, variant edit modal
+   ========================================================================== */
+
+/* ---------- Cart drawer (modal) ---------- */
+.cart-backdrop {
+  position: fixed; inset: 0; background: rgba(17, 22, 27, 0.45);
+  opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 1149;
+}
+.cart-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.cart-drawer {
+  position: fixed; top: 0; right: 0; height: 100vh; width: 400px; max-width: 92vw;
+  background: var(--surface); box-shadow: -8px 0 32px rgba(24, 16, 10, 0.28);
+  transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1150; display: flex; flex-direction: column;
+}
+.cart-drawer.open { transform: translateX(0); }
+
+.cart-drawer-header {
+  padding: 1.15rem 1.35rem; border-bottom: 1px solid var(--line-strong);
+  background: var(--surface-subtle);
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.cart-drawer-header h2 { font-size: 1.15rem; font-weight: 700; color: var(--ink); margin: 0; }
+.cart-drawer-close { background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--ink-soft); padding: 0.25rem; transition: color 0.15s ease; }
+.cart-drawer-close:hover { color: var(--amber); }
+
+.cart-drawer-body { flex: 1; overflow-y: auto; padding: 0.75rem 1.35rem; }
+
+.cart-line { display: flex; gap: 0.85rem; padding: 0.95rem 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+.cart-line .thumb-mini {
+  width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--surface-subtle);
+  border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center; color: var(--amber);
+  font-family: var(--font-mono); font-weight: 600; font-size: 0.92rem; overflow: hidden; flex-shrink: 0;
+}
+.cart-line .thumb-mini img { width: 100%; height: 100%; object-fit: cover; }
+.cart-line .info { flex: 1; min-width: 0; }
+.cart-line .name { font-size: 0.95rem; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cart-line .meta { font-size: 0.84rem; color: var(--ink-soft); margin-top: 0.15rem; }
+.cart-line .qty-controls { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.45rem; }
+.cart-line .qty-controls button {
+  width: 28px; height: 28px; border-radius: 5px; border: 1px solid var(--line);
+  background: var(--surface); cursor: pointer; font-size: 1.05rem; line-height: 1; color: var(--ink);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.cart-line .qty-controls button:hover { background: var(--amber); border-color: var(--amber); color: #fff; }
+.cart-line .qty-controls .qty-num { width: 2.2rem; text-align: center; font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; }
+.cart-line .remove-line {
+  color: var(--red-danger); font-size: 0.84rem; cursor: pointer; background: none;
+  border: none; padding: 0; margin-top: 0.45rem; text-decoration: underline;
+}
+.cart-empty { padding: 3rem 0.5rem; text-align: center; color: var(--ink-soft); font-size: 0.95rem; }
+
+.cart-drawer-footer {
+  padding: 1.15rem 1.35rem; border-top: 1px solid var(--line-strong);
+  background: var(--surface-subtle); flex-shrink: 0;
+}
+.cart-drawer-footer textarea {
+  width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--line); border-radius: var(--radius-sm);
+  font-family: var(--font-body); font-size: 0.92rem; margin-bottom: 0.75rem; resize: vertical;
+}
+.cart-drawer-footer .btn { width: 100%; }
+.cart-drawer-error { color: var(--red-danger); font-size: 0.88rem; font-weight: 600; margin-bottom: 0.65rem; }
+
+/* ---------- Item details modal ---------- */
+.item-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(17, 22, 27, 0.45);
+  opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 1149;
+}
+.item-modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.item-modal {
+  /* Above the mobile fixed top bar (z-index: 1050) — see .cart-drawer's
+     comment above for why this needs to clear it. */
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -48%) scale(0.97);
+  width: 480px; max-width: 92vw; max-height: 88vh; overflow-y: auto;
+  background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-modal);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1150;
+}
+.item-modal.open {
+  opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1);
+}
+
+.item-modal-close {
+  position: absolute; top: 0.6rem; right: 0.75rem; background: none; border: none;
+  font-size: 1.6rem; line-height: 1; cursor: pointer; color: var(--ink-soft); z-index: 1;
+}
+.item-modal-close:hover { color: var(--ink); }
+
+/* Wider variant for modals whose table content (e.g. My Loans' 5-column
+   detail table: item, qty, borrowed, due, status) doesn't fit the
+   480px default without forcing table-responsive into a horizontal
+   scrollbar — same pattern as .variant-modal-wide. */
+.item-modal-wide { width: 720px; }
+
+/* Lock the background page while the sheet/modal is open — otherwise the
+   page behind can still scroll (visible as a scrollbar/peeking content
+   at the edge), which reads as broken, especially on mobile. */
+body.item-modal-open { overflow: hidden; }
+
+/* Themed thin scrollbar for when the sheet's own content is still taller
+   than the available space, instead of the default bulky OS scrollbar. */
+.item-modal { scrollbar-width: thin; scrollbar-color: var(--amber-dim) transparent; }
+.item-modal::-webkit-scrollbar { width: 6px; }
+.item-modal::-webkit-scrollbar-track { background: transparent; }
+.item-modal::-webkit-scrollbar-thumb { background: var(--amber-dim); border-radius: var(--radius-pill); }
+
+.item-modal-thumb {
+  aspect-ratio: 16 / 9; background: var(--charcoal-2);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.item-modal-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.item-modal-thumb .placeholder {
+  color: var(--amber); font-family: var(--font-mono); font-size: 2.2rem; font-weight: 600; letter-spacing: 0.04em;
+}
+
+.item-modal-body { padding: 1.1rem 1.4rem 1.4rem; }
+
+.item-modal-specs { margin: 0 0 0.5rem; display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 0.75rem; }
+.item-modal-specs dt { font-size: 0.85rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; font-family: var(--font-mono); }
+.item-modal-specs dd { margin: 0; font-size: 0.97rem; }
+
+/* ---------- Item details modal: labeled field grid ---------- */
+.item-detail-grid { display: flex; flex-direction: column; gap: 0.65rem; }
+.detail-row-split { display: flex; flex-wrap: wrap; gap: 1rem; }
+.detail-field { flex: 1 1 45%; min-width: 140px; display: flex; flex-direction: column; gap: 0.15rem; }
+.detail-field-full { flex: 1 1 100%; }
+.detail-label {
+  font-size: 0.82rem; color: var(--ink-soft); text-transform: uppercase;
+  letter-spacing: 0.05em; font-family: var(--font-mono);
+}
+.detail-value { font-size: 1.02rem; color: var(--ink); word-break: break-word; }
+
+/* ---------- Consume / Borrow choice toggle ---------- */
+.mode-toggle {
+  display: flex; border: 1px solid var(--line); border-radius: var(--radius-pill);
+  background: var(--plank); padding: 3px; gap: 3px;
+}
+.mode-toggle-option {
+  flex: 1; position: relative; cursor: pointer;
+}
+.mode-toggle-option input {
+  position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;
+}
+.mode-toggle-option span {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.1rem; padding: 0.55rem 0.5rem; border-radius: var(--radius-pill);
+  font-size: 0.93rem; font-weight: 600; color: var(--ink-soft);
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  text-align: center; line-height: 1.15;
+}
+.mode-toggle-option span small {
+  font-weight: 400; font-size: 0.82rem; letter-spacing: 0.01em;
+}
+.mode-toggle-option:hover span { color: var(--ink); }
+.mode-toggle-option input:checked + span {
+  background: var(--charcoal); color: #fff; box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.2));
+}
+.mode-toggle-option input:focus-visible + span { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+/* "Borrow for" field on choice items: collapses to zero height (instead
+   of staying reserved) when not needed, so the modal doesn't waste space
+   or force a scrollbar — but the collapse animates instead of an
+   instant display:none cut, so it still doesn't feel like a jump. */
+#itemModalDaysGroup {
+  overflow: hidden; max-height: 4.5rem; opacity: 1; margin-top: 0;
+  transition: max-height 0.18s ease, opacity 0.15s ease;
+}
+#itemModalDaysGroup.is-hidden { max-height: 0; opacity: 0; pointer-events: none; }
+
+/* ---------- Quantity +/- stepper ---------- */
+.qty-stepper {
+  display: flex; align-items: stretch; width: 100%;
+  border: 1px solid var(--line); border-radius: 6px; overflow: hidden;
+}
+.qty-stepper input {
+  flex: 1; min-width: 0; text-align: center; border: none; padding: 0.5rem 0.25rem;
+  font-family: var(--font-body); font-size: 1.02rem; background: var(--surface); color: var(--ink);
+}
+.qty-stepper input:focus-visible { outline: 2px solid var(--amber); outline-offset: -2px; }
+.qty-step-btn {
+  flex: 0 0 auto; width: 2.4rem; border: none; background: var(--surface-subtle);
+  color: var(--ink); font-size: 1.15rem; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.qty-step-btn:hover { background: var(--amber); color: #fff; }
+.qty-step-btn:first-child { border-right: 1px solid var(--line); }
+.qty-step-btn:last-child { border-left: 1px solid var(--line); }
+
+@media (max-width: 640px) {
+  /* Bottom-sheet style instead of a full-screen takeover, so the page
+     underneath still peeks through and it feels like an overlay, not a
+     brand new screen. */
+  .item-modal {
+    width: 100%; max-width: 100%;
+    top: auto; bottom: 0; left: 0;
+    height: auto; max-height: 94vh;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+  }
+  .item-modal.open { transform: translateY(0); }
+
+  /* Small drag-handle affordance at the top of the sheet */
+  .item-modal::before {
+    content: "";
+    position: sticky; top: 0;
+    display: block; margin: 0.55rem auto 0;
+    width: 36px; height: 4px;
+    border-radius: 999px;
+    background: var(--line);
+  }
+
+  .item-modal-close { top: 0.5rem; }
+
+  /* The banner-style product photo is very tall at 16:9 on a narrow
+     screen; shrink it so the useful info (price/stock/qty/button)
+     fits on screen without scrolling. */
+  .item-modal-thumb { aspect-ratio: auto; height: 130px; }
+
+  .item-modal-body { padding: 0.9rem 1.1rem 1.1rem; }
+  .item-modal-body .form-group { margin-bottom: 0.55rem; }
+
+  /* Tighten the spec grid, description, and choice toggle on small
+     screens too — every row here adds up toward the 94vh ceiling. */
+  .item-detail-grid { gap: 0.4rem; }
+  .item-modal-specs { margin-bottom: 0.3rem; }
+  #itemModalCategory { margin: 0.5rem 0 0 !important; }
+  .mode-toggle-option span { padding: 0.42rem 0.4rem; }
+  .mode-toggle-option span small { font-size: 0.8rem; }
+
+  /* The fixed bottom-nav sits above the sheet (higher z-index) and was
+     clipping its bottom edge. Tuck it out of the way while the sheet
+     is open so the sheet can use that space instead. */
+  body.item-modal-open .bottom-nav {
+    transform: translateY(100%);
+    pointer-events: none;
+  }
+}
+
+
+/* ---------- Notification modal ---------- */
+/* An anchored dropdown near whichever bell button was clicked, not a
+   full centered modal — positioned in JS (see positionNotifModal in
+   footer.php) via top/right, so it works whether triggered from the
+   sidebar bell (mobile) or the page-header bell (desktop). */
+.notif-modal-backdrop {
+  position: fixed; inset: 0; background: transparent;
+  opacity: 0; pointer-events: none; transition: opacity 0.15s ease; z-index: 1200;
+}
+.notif-modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.notif-modal {
+  position: fixed; top: 4.5rem; right: 1.5rem; left: auto;
+  transform: scale(0.97); transform-origin: top right;
+  width: 360px; max-width: 92vw; max-height: 80vh; overflow-y: auto;
+  background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-modal);
+  opacity: 0; pointer-events: none; transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 1201;
+}
+.notif-modal.open {
+  opacity: 1; pointer-events: auto; transform: scale(1);
+}
+
+.notif-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; background: var(--surface);
+}
+.notif-modal-header h2 { margin: 0; font-size: 1.1rem; }
+.notif-modal-close { position: static; }
+
+.notif-modal-body { padding: 0.5rem 0; }
+.notif-modal-body .empty-state { padding: 1.5rem 1.25rem; }
+
+.notif-item {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem;
+  padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--line); font-size: 0.95rem;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item-unread { background: #FBF4E6; }
+.notif-item-unread .notif-item-message { font-weight: 600; }
+.notif-item-message { flex: 1; min-width: 0; }
+.notif-item-time { color: var(--ink-soft); font-size: 0.8rem; white-space: nowrap; flex-shrink: 0; }
+
+/* Notifications that link somewhere are fully clickable rows, not
+   just the message text — cursor + hover feedback make that obvious. */
+a.notif-item.notif-item-link { color: inherit; text-decoration: none; cursor: pointer; }
+.notif-item-link:hover { background: var(--paper); }
+.notif-item-link:hover .notif-item-message { color: var(--amber-dim); }
+
+@media (max-width: 640px) {
+  .notif-modal-backdrop { background: rgba(17, 22, 27, 0.45); }
+  .notif-modal {
+    width: 100%; max-width: 100%; max-height: 100vh; height: 100%; border-radius: 0;
+    top: 0; left: 0; right: auto; transform: translateY(2%);
+  }
+  .notif-modal.open { transform: translateY(0); }
+}
+
+/* "Added to cart" feedback animation */
+@keyframes cart-pulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); }
+  65% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.cart-badge-pulse { animation: cart-pulse 0.45s ease; }
+
+.btn-add-success {
+  background: var(--green-ok) !important;
+  color: #fff !important;
+  transition: background 0.2s ease;
+}
+
+@keyframes fly-fade {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-14px) scale(0.85); }
+}
+.add-flash { animation: fly-fade 0.5s ease forwards; }
+
+@media (max-width: 720px) {
+  .cart-drawer { width: 100%; max-width: 100%; }
+
+  .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .stat-card { padding: 0.9rem 1rem; }
+  .stat-card-value { font-size: 1.6rem; }
+
+  .app-shell { flex-direction: column; }
+  .sidebar { position: static; width: 100%; height: auto; overflow-y: visible; padding: 4.6rem 1rem 1rem; }
+  .sidebar .brand { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .main { padding: 1.25rem 1rem calc(4.75rem + env(safe-area-inset-bottom, 0px)); margin-left: 0; }
+
+  /* Mobile: bell moves back into the sidebar's fixed top bar, and the
+     desktop topbar copy disappears entirely. */
+  .notif-toggle-sidebar { display: flex; }
+  .notif-toggle-top { display: none; }
+  .main-topbar { display: none; }
+  .scan-toggle-sidebar { display: flex; }
+  .scan-toggle-top { display: none; }
+
+  /* Fixed top bar: pinned to the top of the viewport at all times, so
+     scrolling down (even all the way to the bottom) never hides it —
+     no need to scroll back up to reach the menu/logo/profile */
+  .sidebar-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: var(--charcoal);
+    padding: 0.85rem 1rem;
+    box-shadow: 0 2px 10px rgba(17, 22, 27, 0.25);
+    transform: translateY(0);
+    transition: transform 0.25s ease;
+  }
+
+  /* Auto-hide on scroll: header slides up out of view, bottom nav slides
+     down out of view, both toggled by the same JS scroll listener (see
+     footer.php) so more of the page is visible while actively scrolling
+     through a long list, and both snap back the moment you scroll up. */
+  .sidebar-top.scroll-hidden {
+    transform: translateY(-100%);
+  }
+
+  /* Collapsible nav: hidden — the bottom tab bar's "More" button now
+     opens this same drawer on mobile, so the top bar doesn't need its
+     own hamburger button too. */
+  .nav-toggle {
+    display: none;
+  }
+
+  /* Profile icon: same footprint/positioning behavior as the hamburger button */
+  .profile-toggle {
+    display: flex;
+    align-items: center;
+    background: var(--charcoal-2);
+    border: 1px solid var(--charcoal-border);
+    border-radius: 50%;
+    padding: 0.35rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    z-index: 1101;
+    position: relative;
+  }
+
+  /* Backdrop: dims the page while the drawer or profile menu is open */
+  .nav-backdrop {
+    position: fixed; inset: 0; background: rgba(17, 22, 27, 0.45);
+    opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 1099;
+  }
+  .nav-backdrop.open { display: block; opacity: 1; pointer-events: auto; }
+
+  /* Main nav: slides in from the left edge as a full-height drawer,
+     rather than a small dropdown, so it reads like a proper off-canvas menu */
+  #sidebarNav {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    max-width: 85vw;
+    overflow-y: auto;
+    background: var(--charcoal);
+    border-right: 1px solid var(--charcoal-border);
+    padding: 0.75rem 1rem 1.5rem;
+    box-shadow: 6px 0 28px rgba(17, 22, 27, 0.35);
+    z-index: 1200;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+  }
+  #sidebarNav.open { transform: translateX(0); }
+
+  .nav-drawer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 0.85rem; margin-bottom: 0.5rem;
+    border-bottom: 2px solid var(--amber); flex-shrink: 0;
+  }
+  .nav-drawer-header .brand { color: var(--amber-on-dark); font-size: 1.1rem; letter-spacing: 0.06em; }
+  .nav-drawer-close {
+    display: block; background: none; border: none; color: var(--paper);
+    font-size: 1.6rem; line-height: 1; cursor: pointer; padding: 0.15rem 0.4rem;
+  }
+  .nav-drawer-close:hover { color: #fff; }
+
+  /* Bottom tab bar: fixed row of icon+label destinations, Shopee/TikTok-
+     style, so the most-used pages are one tap away without opening the
+     drawer at all. Sits above the drawer/backdrop in stacking order isn't
+     needed since it's not a modal — it's always-visible chrome, same as
+     the fixed top bar. */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 1050;
+    background: var(--charcoal);
+    border-top: 1px solid var(--charcoal-border);
+    padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -2px 10px rgba(17, 22, 27, 0.25);
+    transform: translateY(0);
+    transition: transform 0.25s ease;
+  }
+
+  .bottom-nav.scroll-hidden {
+    transform: translateY(100%);
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    background: none;
+    border: none;
+    color: var(--ink-light);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    line-height: 1.1;
+    padding: 0.4rem 0.2rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+
+  .bottom-nav-item svg { width: 22px; height: 22px; }
+  .bottom-nav-item.active { color: var(--amber-on-dark); font-weight: 600; }
+
+  .bottom-nav-icon { position: relative; display: inline-flex; }
+  .bottom-nav-badge {
+    position: absolute;
+    top: -4px; right: -8px;
+    font-size: 0.72rem;
+    line-height: 1;
+    padding: 0.15rem 0.35rem;
+    min-width: 1.1rem;
+    text-align: center;
+  }
+
+  /* Profile menu: stays a small floating card anchored near its own button */
+  #userChip {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 4.1rem;
+    right: 1rem;
+    width: 200px;
+    max-width: calc(100vw - 2rem);
+    background: var(--charcoal);
+    border: 1px solid var(--charcoal-border);
+    border-radius: var(--radius-md);
+    padding: 0.9rem;
+    box-shadow: 0 12px 32px rgba(17, 22, 27, 0.35);
+    z-index: 1100;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    margin-top: 0;
+  }
+  #userChip.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+  /* At 200px wide, "Settings" and "Log out" side-by-side leave each
+     button too narrow for its icon + label, forcing "Log out" onto two
+     lines. Stack them full-width instead — still compact, no wrapping. */
+  #userChip .user-chip-links { flex-direction: column; gap: 0.5rem; }
+  #userChip .settings-link,
+  #userChip .logout-link { width: 100%; }
+
+  .sidebar nav a { padding: 0.75rem; font-size: 1.05rem; line-height: 1.35; } /* bigger tap targets */
+  /* The drawer's base 0.15rem link gap (fine on desktop's smaller/denser
+     list) reads as cramped once mobile bumps padding/font-size above —
+     rows end up touching with almost no breathing room between them,
+     especially where a longer label wraps to two lines. Widen both the
+     gap between links and the drawer itself so wrapped labels ("My
+     Borrowed Tools") have room without crowding the row above/below. */
+  .sidebar nav { gap: 0.4rem; }
+  #sidebarNav { width: 300px; padding: 0.9rem 1.1rem 1.5rem; }
+  .nav-section-label { margin: 1.15rem 0 0.55rem; }
+  .sidebar nav .nav-section-label:first-child { margin-top: 0.2rem; }
+  /* Keep the Reports sub-nav visually smaller/indented than top-level
+     links even at the bigger mobile tap-target size above, so Overview
+     vs. Utilization still reads as nested, not just two more full-size
+     sidebar items. */
+  .nav-subnav a { padding: 0.6rem 0.6rem; font-size: 0.93rem; }
+
+  /* Page header: stack title above the action button rather than crowd them */
+  .page-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; position: relative; }
+  /* Only a *group* of buttons (wrapped in its own div, e.g. "Stock in" +
+     "Adjustment") takes the full row. A single action link/button (e.g.
+     "+ New request") stays its natural, compact width instead of
+     stretching edge-to-edge, which read as an oversized button on phones. */
+  .page-header > div:last-child { width: 100%; }
+  .page-header > a.cart-icon-btn { position: absolute; top: 0; right: 0; width: 42px; }
+
+  /* Filters: one full-width control per row */
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-bar .form-group,
+  .filter-bar .form-group.grow { min-width: 0; width: 100%; }
+  .filter-bar button { width: 100%; }
+
+  /* Stock Ledger rows: pill above the details instead of squeezed beside them */
+  .history-row { flex-direction: column; gap: 0.4rem; }
+  .history-change-pill { min-width: 0; }
+
+  /* Table mobile layout (stacked cards, not horizontal scroll) now lives
+     entirely in tables.css — this file used to also set table.data rules
+     here (display/overflow/white-space), which fought with tables.css's
+     stacked-card design at the same breakpoint and produced a garbled,
+     overlapping row-actions layout on phones. */
+
+  /* Bar chart rows: shrink the label column so the bar itself stays visible */
+  .bar-row { grid-template-columns: 90px 1fr 3rem; gap: 0.5rem; }
+
+  /* Forms: 16px inputs prevent iOS Safari's auto-zoom-on-focus */
+  input[type="text"], input[type="email"], input[type="password"],
+  input[type="tel"], input[type="date"], input[type="file"], select, textarea {
+    font-size: 16px;
+  }
+
+  /* Buttons: comfortable tap targets */
+  .btn { padding: 0.65rem 1.1rem; }
+  .btn-sm { padding: 0.5rem 0.8rem; }
+
+  .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
+}
+
+/* Audit log pagination — same visual language as the rest of the
+   card-based list pages (see .card, .btn-outline, .btn-sm above). */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line, #E4D9C8);
+}
+.pagination-status { color: var(--ink-soft); font-size: 0.9rem; }
+.pagination .btn.disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* ==========================================================================
+   Dashboards v2 — role-tuned widgets
+   Same tokens as the rest of the app (charcoal/amber/paper), built out
+   into a few reusable pieces: a hero band for the day's headline, icon
+   stat cards with a status rail, a compact activity timeline, an inline
+   sparkline (no charting library, same spirit as the Reports bar charts),
+   and a priority list for "here's what needs a decision" queues.
+   ========================================================================== */
+
+/* ---------- Variant edit modal (item_edit.php) ----------
+   Same overlay pattern as .item-modal, scoped separately since this
+   one lives inside an admin form (a modal per existing option). */
+.variant-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(17, 22, 27, 0.45);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 1149;
+}
+.variant-modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.variant-modal {
+  /* Above the mobile fixed top bar (z-index: 1050) — see .cart-drawer's
+     comment above for why this needs to clear it. */
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -48%) scale(0.97);
+  width: 420px; max-width: 92vw; max-height: 88vh; overflow-y: auto;
+  background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-modal);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1150;
+}
+.variant-modal.open {
+  opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1);
+}
+.variant-modal-close {
+  position: absolute; top: 0.5rem; right: 0.65rem; background: none; border: none;
+  font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--ink-soft); z-index: 1;
+}
+.variant-modal-close:hover { color: var(--ink); }
+.variant-modal-body { padding: 1.2rem 1.3rem 1.3rem; }
+.variant-modal-title { margin: 0 0 0.9rem; font-size: 1.1rem; }
+
+body.variant-modal-open { overflow: hidden; }
+
+/* Wider variant for modals that hold a full form (e.g. Edit item),
+   rather than the compact 420px default used for quick actions. */
+.variant-modal-wide { width: 800px; }
+
+/* Mid-size variant — bigger than a quick-action modal so the camera
+   area has room to breathe, but not a full form-width modal. */
+.variant-modal-medium { width: 560px; }
+
+@media (max-width: 640px) {
+  .variant-modal {
+    width: 100%; max-width: 100%;
+    top: auto; bottom: 0; left: 0;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+  }
+  .variant-modal.open { transform: translateY(0); }
+}
+
+/* ---------- Scan modal (universal QR scanner) ----------
+   Bigger camera area than the other per-page scanners, since this
+   one is the primary way staff scan now, plus a corner-bracket guide
+   overlaid on top so it's obvious where to hold the QR code — the
+   library's own shaded cutout is functional but easy to miss at a
+   glance. Guide box (260px) matches the qrbox size passed to
+   Html5Qrcode so it lines up with the actual scan region. */
+.scan-modal-subtitle {
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  margin: 0 0 var(--space-3);
+}
+.scan-modal-status {
+  display: none;
+  font-size: var(--text-sm);
+  margin-top: var(--space-2);
+}
+.scan-modal-form {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.scan-reader-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+}
+.scan-reader-wrap #scanModalReader {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--paper-soft, #f4ede2);
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+/* Previously forced the <video> to fill the box via object-fit: cover,
+   to avoid a blank strip when the camera's native aspect ratio didn't
+   match this square container. Removed: that crop is purely visual —
+   Html5Qrcode's own decode region is computed against the video's
+   layout box, not its cropped-for-display pixels — so it could
+   quietly pull the true scan area away from the guide brackets shown
+   on screen. verify.php's own reader has never had this override and
+   scans reliably, so we now size the video the same (plain) way here
+   and accept an occasional blank strip in exchange for a scan area
+   that actually matches what's drawn on screen. */
+.scan-guide {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 260px; height: 260px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+/* Corners double as resize handles (see footer.php scan-modal script),
+   so unlike the guide box itself they need pointer-events re-enabled.
+   The ::after pseudo pads out the actual hit area — the visible
+   bracket is a thin 34px corner, way too small to reliably grab on a
+   touch screen otherwise. */
+.scan-guide-corner {
+  position: absolute;
+  width: 34px; height: 34px;
+  border: 4px solid var(--amber);
+  pointer-events: auto;
+  touch-action: none;
+}
+.scan-guide-corner::after {
+  content: '';
+  position: absolute;
+  inset: -14px;
+}
+.scan-guide-tl { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; cursor: nwse-resize; }
+.scan-guide-tr { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 8px 0 0; cursor: nesw-resize; }
+.scan-guide-bl { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 8px; cursor: nesw-resize; }
+.scan-guide-br { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 8px 0; cursor: nwse-resize; }
+.scan-guide.dragging .scan-guide-corner { border-color: var(--amber-hover); }
+.scan-guide-resize-hint {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  margin: var(--space-3) 0 0;
+}
+.scan-guide-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--amber-dim);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.scan-guide-reset:hover { color: var(--amber-hover); }
+
+@media (max-width: 640px) {
+  .scan-guide { width: 220px; height: 220px; }
+}

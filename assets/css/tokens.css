@@ -1,0 +1,102 @@
+/* ==========================================================================
+   DuaRTE — Design Tokens
+   Theme: Refined Industrial Slate & Muted Warm Cognac (Low Saturation)
+   Designed for heavy fleet, logistics & warehouse operations with zero eye-glare.
+   ========================================================================== */
+
+:root {
+  /* Core Shell & Structure (Deep Slate Graphite - Never harsh pitch black) */
+  --charcoal:        #1A2129;  /* Deep Slate Graphite — primary dark shell */
+  --charcoal-2:      #242E38;  /* Muted Charcoal Steel — sidebar & header panels */
+  --charcoal-hover:  #2F3B47;  /* Soft Graphite Hover */
+  --charcoal-border: #3A4754;  /* Muted Shell Border */
+
+  /* Interactive Muted Cognac & Warm Bronze (Low Saturation - Never Loud or Glaring) */
+  --amber:           #8C5A32;  /* Muted Warm Cognac — primary brand & action buttons */
+  --amber-dim:       #6E4424;  /* Deep Muted Bronze — hover & pressed states */
+  --amber-gold:      #A87442;  /* Warm Champagne Bronze — subtle badges & metrics */
+  --amber-on-dark:   #E2C39B;  /* Soft Warm Sand on dark backgrounds (WCAG AA pass) */
+  --amber-hover:     #784B27;  /* Link & accent hover */
+
+  /* Canvas & Raised Surfaces (Soft Titanium Mist - Eye Comfort) */
+  --paper:           #F5F7FA;  /* Soft Titanium Mist — clean, matte, calm canvas */
+  --surface:         #FFFFFF;  /* Crisp Pure Alabaster — cards, panels, modals */
+  --surface-card:    #FFFFFF;  /* Solid card background */
+  --surface-subtle:  #EDF1F5;  /* Subtle Cool Mist — table headers & well backgrounds */
+  --surface-hover:   #F8FAFC;  /* Ultra-subtle hover highlight */
+  --plank:           #E2E8F0;  /* Architectural stone framing & structural borders */
+  --label-paper:     #EAEEF3;
+
+  /* Typography Inks (High Legibility, Low Eye Strain) */
+  --ink:             #161E26;  /* Deep Slate Ink — high contrast, soft on retina */
+  --ink-soft:        #5A6876;  /* Muted Slate Walnut — subtitles, hints, metadata */
+  --ink-light:       #8A99A8;  /* Inactive labels & secondary placeholders */
+  --line:            #E1E6EB;  /* Tailored Hairline Border */
+  --line-strong:     #CBD5E1;  /* Distinct section dividers & table rules */
+  --line-focus:      #8C5A32;  /* Subtle Focus ring outline */
+
+  /* Semantic Statuses (Desaturated, Muted, Professional) */
+  --green-ok:        #2D6A4F;  /* Desaturated Forest Pine text */
+  --green-tint:      #EEF6F2;  /* Light Sage background */
+  --green-border:    #C2E0CE;  /* Sage pill border */
+
+  --red-danger:      #94382C;  /* Muted Terracotta Rosewood text */
+  --red-tint:        #FAF1EF;  /* Light Rosewood background */
+  --red-border:      #EFC7C1;  /* Terracotta pill border */
+
+  --amber-tint:      #FAF4EB;  /* Muted Warm Honey background */
+  --amber-border:    #EDDCBE;  /* Warm Honey pill border */
+
+  --blue-info:       #2E5370;  /* Slate Aegean Navy text */
+  --blue-tint:       #EEF4F8;  /* Soft Slate Navy tint */
+  --blue-border:     #C5D9E8;  /* Slate Navy border */
+
+  --asphalt:         #11161B;
+  --stamp-ink:       #94382C;
+
+  /* Radius Scale (Modern Ergonomic Curves) */
+  --radius-xs:   4px;
+  --radius-sm:   8px;    /* inputs, buttons, badges, thumbnails */
+  --radius-md:   12px;   /* cards, panels, modal dialogs */
+  --radius-lg:   16px;   /* hero panels, floating drawers */
+  --radius-pill: 999px;  /* chips, count pills, status badges */
+
+  /* Spacing Scale (8pt rhythmic cadence) */
+  --space-1:  0.25rem;  /* 4px */
+  --space-2:  0.5rem;   /* 8px */
+  --space-3:  0.75rem;  /* 12px */
+  --space-4:  1rem;     /* 16px */
+  --space-5:  1.25rem;  /* 20px */
+  --space-6:  1.5rem;   /* 24px */
+  --space-8:  2rem;     /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+
+  /* Typography Scale */
+  --text-xs:   0.75rem;
+  --text-sm:   0.84rem;
+  --text-base: 0.94rem;
+  --text-md:   1rem;
+  --text-lg:   1.15rem;
+  --text-xl:   1.5rem;
+  --text-2xl:  1.9rem;
+
+  /* Physical Elevation & Multi-layer Soft Ambient Shadows */
+  --shadow-sm:         0 1px 2px rgba(22, 30, 38, 0.04), 0 0 0 1px rgba(22, 30, 38, 0.03);
+  --shadow-card:       0 1px 3px rgba(22, 30, 38, 0.04), 0 6px 16px -3px rgba(22, 30, 38, 0.06);
+  --shadow-card-hover: 0 4px 6px -1px rgba(22, 30, 38, 0.06), 0 12px 24px -4px rgba(22, 30, 38, 0.10);
+  --shadow-float:      0 12px 28px -6px rgba(22, 30, 38, 0.12), 0 8px 12px -6px rgba(22, 30, 38, 0.06);
+  --shadow-modal:      0 28px 56px -12px rgba(17, 22, 27, 0.32);
+
+  /* Animation & Transition Tokens */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast:    160ms;
+  --dur-base:    240ms;
+  --dur-slow:    360ms;
+
+  /* Font Families */
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  --font-display: 'Inter', sans-serif;
+}

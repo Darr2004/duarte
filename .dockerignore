@@ -1,0 +1,8 @@
+.git
+.gitignore
+.idea
+*.apk
+*.bat
+*.vbs
+scratch/
+database/seed_*.sql

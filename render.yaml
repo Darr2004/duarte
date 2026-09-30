@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: duarte-system
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: BASE_URL
+        value: ""
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_NAME
+        value: "duarte_db"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false

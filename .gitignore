@@ -1,0 +1,18 @@
+# Environment overrides & credentials
+config/config.local.php
+.env
+
+# IDE and temporary directories
+.idea/
+.vscode/
+scratch/
+cron/*.log
+
+# Uploads
+uploads/items/*
+uploads/profile/*
+!uploads/.htaccess
+!uploads/items/.htaccess
+
+# App builds
+*.apk

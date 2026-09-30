@@ -1,0 +1,244 @@
+/* ==========================================================================
+   Mobile navigation toggle
+   ========================================================================== */
+
+/* ---------- Shared across all widths ---------- */
+.sidebar-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.brand-group { display: flex; align-items: center; gap: 0.65rem; min-width: 0; }
+.sidebar-top-controls { display: flex; align-items: center; gap: 0.5rem; }
+.nav-toggle { display: none; }
+.nav-backdrop { display: none; }
+
+/* Hamburger icon: three bars that morph into an X when the panel is open */
+.hamburger { display: inline-flex; flex-direction: column; justify-content: center; gap: 4px; width: 20px; height: 16px; }
+.hamburger span {
+  display: block; width: 100%; height: 2px; border-radius: 2px;
+  background: #fff; transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.nav-toggle[aria-expanded="true"] .hamburger span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .hamburger span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] .hamburger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.nav-toggle-badge { margin-left: 0.5rem; }
+
+/* Profile avatar icon: mirrors the hamburger button's footprint so the
+   two controls read as a matched pair */
+.avatar-circle {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--amber-dim); color: #fff;
+  font-size: 0.82rem; font-weight: 600; letter-spacing: 0.02em;
+}
+img.avatar-circle { object-fit: cover; background: var(--line); }
+.profile-toggle[aria-expanded="true"] { border-color: var(--amber); }
+
+/* Notification bell button: the one place notifications live at every
+   width (desktop and mobile). Given its own amber accent treatment
+   (instead of blending into the sidebar) and extra spacing from the
+   hamburger/profile controls so it reads as its own distinct, easy-to-
+   spot control rather than getting lost among the other icons. */
+.sidebar-top-controls { gap: 0.75rem; }
+.notif-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--amber-dim);
+  border: 1px solid var(--amber);
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  margin-left: 0.15rem;
+  box-shadow: 0 2px 8px rgba(20, 14, 8, 0.35);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.notif-toggle:hover { background: var(--amber); transform: translateY(-1px); }
+.notif-toggle svg { width: 19px; height: 19px; display: block; }
+
+/* Scan button: same look as the notif bell, kept as its own class (not
+   just reusing .notif-toggle) so it doesn't get swept up by the notif
+   bell's JS — that JS binds a click handler to every .notif-toggle to
+   open the notifications modal, which used to fire on this button too. */
+.scan-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--amber-dim);
+  border: 1px solid var(--amber);
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  margin-left: 0.15rem;
+  box-shadow: 0 2px 8px rgba(20, 14, 8, 0.35);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.scan-toggle:hover { background: var(--amber); transform: translateY(-1px); }
+.scan-toggle svg { width: 19px; height: 19px; display: block; }
+.notif-toggle-badge {
+  position: absolute; top: -5px; right: -6px;
+  font-size: 0.76rem; line-height: 1; padding: 0.18rem 0.34rem;
+  border-radius: 999px; min-width: 1.15rem; text-align: center;
+  border: 2px solid var(--charcoal);
+}
+
+/* Unread state: a soft looping glow ring so the bell actively draws the
+   eye instead of relying on the small badge alone. Clears the moment
+   the person opens the notifications panel (JS removes the class). */
+@keyframes notif-glow {
+  0%, 100% { box-shadow: 0 2px 8px rgba(20, 14, 8, 0.25), 0 0 0 0 rgba(140, 90, 50, 0.45); }
+  50%      { box-shadow: 0 2px 8px rgba(20, 14, 8, 0.25), 0 0 0 6px rgba(140, 90, 50, 0); }
+}
+.notif-toggle.has-unread { animation: notif-glow 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .notif-toggle.has-unread { animation: none; }
+}
+
+/* Desktop: the bell + scan icon live together in .main-topbar, pinned
+   to a fixed spot at the top-right of the viewport. Deliberately
+   `position: fixed` (not absolute-inside-the-hero, and not relocated
+   into .page-header-actions via JS) so they sit in exactly the same
+   screen spot on every page — hero or not — instead of jumping around
+   as you navigate between sections. */
+.page-header-actions { display: flex; align-items: center; align-self: center; gap: 0.65rem; }
+
+@media (min-width: 721px) {
+  /* Desktop-only chrome. These used to live unscoped at the top of this
+     file, which meant they always won the cascade over modals.css's
+     max-width:720px overrides (same specificity, this file loads later)
+     and silently broke the mobile top bar: it stayed position:relative
+     instead of fixed (while .sidebar still reserved 4.6rem of padding
+     for a fixed bar that wasn't actually fixed anymore, producing a big
+     empty gap), the drawer's header/close button stayed hidden, the
+     sidebar bell stayed hidden, and the desktop floating bell (in
+     .main-topbar) stayed visible on mobile instead of being hidden.
+     Scoping them here keeps every one of those mobile overrides intact. */
+  .sidebar-top { position: relative; }
+  .profile-toggle { display: none; }
+  .nav-drawer-header { display: none; }
+  .nav-drawer-close { display: none; }
+  .notif-toggle-sidebar { display: none; }
+  .scan-toggle-sidebar { display: none; }
+
+  .main-topbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: fixed;
+    top: 1.35rem;
+    right: 2.25rem;
+    z-index: 100;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.28rem 0.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .main-topbar:hover {
+    box-shadow: var(--shadow-card);
+    border-color: var(--line-strong);
+  }
+
+  .scan-toggle-top {
+    width: auto;
+    height: 32px;
+    padding: 0 0.75rem 0 0.6rem;
+    border-radius: 999px;
+    background: var(--amber);
+    border: 1px solid var(--amber);
+    color: #FFFFFF;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: none;
+    margin-left: 0;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .scan-toggle-top:hover {
+    background: var(--amber-dim);
+    border-color: var(--amber-dim);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    text-decoration: none;
+  }
+
+  .scan-toggle-top .scan-toggle-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .scan-toggle-top svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+  }
+
+  .topbar-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--line);
+    flex-shrink: 0;
+  }
+
+  .notif-toggle-top {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    box-shadow: none;
+    margin-left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  }
+
+  .notif-toggle-top:hover {
+    background: var(--surface-subtle);
+    color: var(--amber);
+    border-color: var(--line-strong);
+    transform: translateY(-1px);
+  }
+
+  .notif-toggle-top svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .notif-toggle-top .notif-toggle-badge {
+    top: -4px;
+    right: -4px;
+    font-size: 0.68rem;
+    padding: 0.12rem 0.3rem;
+    border: 2px solid var(--surface);
+    background: var(--red-danger);
+    color: #fff;
+  }
+
+  /* Keep reasonable space on non-hero pages so page headers don't touch topbar */
+  .main:not(.has-hero) { padding-top: 5rem; }
+
+  /* Bottom tab bar is mobile-only chrome; modals.css turns it on inside
+     its own max-width:720px block, so explicitly hide it above that
+     breakpoint here instead of using an unscoped rule (which previously
+     always won the cascade over modals.css's media-scoped display:flex,
+     since both rules share the same specificity and this file loads
+     after modals.css). */
+  .bottom-nav { display: none; }
+}
+

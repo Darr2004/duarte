@@ -1,0 +1,206 @@
+/* ==========================================================================
+   Page: Dashboard — Welcome Hero & Greeting Band
+   Theme: Executive Brown & Warm Walnut
+   ========================================================================== */
+
+/* ---------- Welcome Hero (Personalized Greeting Banner) ---------- */
+/* ---------- Welcome Hero (Personalized Greeting Banner) ---------- */
+.welcome-hero {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--amber);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.welcome-hero::before,
+.welcome-hero::after {
+  display: none;
+}
+
+.welcome-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.welcome-hero-avatar {
+  width: 58px;
+  height: 58px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  background: var(--amber-tint);
+  color: var(--amber);
+  border: 2px solid var(--amber-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(142, 82, 37, 0.12);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+img.welcome-hero-avatar { object-fit: cover; }
+
+.welcome-hero-text { position: relative; z-index: 1; }
+
+.welcome-hero-eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.74rem;
+  margin-bottom: 0.2rem;
+}
+
+.welcome-hero-name {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.welcome-hero-role {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--amber);
+  background: var(--amber-tint);
+  border: 1px solid var(--amber-border);
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-pill);
+}
+
+.welcome-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .welcome-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.15rem 1.25rem;
+    gap: 1rem;
+  }
+}
+
+.page-lead {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  margin: -0.8rem 0 1.5rem;
+  max-width: 65ch;
+  line-height: 1.55;
+}
+
+.quick-actions-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 720px) {
+  .welcome-hero { padding: 1.25rem 1.4rem; gap: 1rem; }
+  .welcome-hero-avatar { width: 56px; height: 56px; font-size: 1.35rem; }
+  .welcome-hero-name { font-size: 1.35rem; }
+  .welcome-hero-eyebrow { font-size: 0.74rem; }
+  .welcome-hero-role { font-size: 0.74rem; }
+}
+
+/* ---------- Dash Hero Band ---------- */
+.dash-hero {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--amber);
+  color: var(--ink);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.dash-hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 0.35rem;
+}
+
+.dash-hero-greeting { display: flex; align-items: center; gap: 1.1rem; }
+.dash-hero h1 { margin: 0; font-size: 1.55rem; color: var(--ink); font-weight: 700; letter-spacing: -0.02em; }
+.dash-hero p { margin: 0.4rem 0 0; color: var(--ink-soft); font-size: 0.94rem; max-width: 50ch; line-height: 1.5; }
+.dash-hero-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; flex-shrink: 0; }
+.dash-hero .btn-primary {
+  background: var(--amber);
+  color: #FFFDF9;
+  border: 1px solid var(--amber);
+}
+.dash-hero .btn-primary:hover {
+  background: var(--amber-dim);
+  border-color: var(--amber-dim);
+}
+.dash-hero .btn-ghost {
+  background: var(--surface-subtle);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.dash-hero .btn-ghost:hover {
+  background: var(--surface-hover);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.dash-hero-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--amber-tint);
+  border: 1px solid var(--amber-border);
+  color: var(--amber-dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-pill);
+  margin-top: 0.5rem;
+}
+.dash-hero-flag svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+.dash-hero-actions .btn svg,
+.alert svg,
+.btn svg {
+  width: 15px;
+  height: 15px;
+  vertical-align: -2px;
+  margin-right: 0.3rem;
+  flex-shrink: 0;
+}

@@ -1,0 +1,12 @@
+# Prevent directory listings
+Options -Indexes
+
+# Pass Authorization header to PHP (prevents Apache from stripping Bearer tokens)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} ^(.*)
+    RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+</IfModule>
+
+# Set default index files
+DirectoryIndex index.php index.html

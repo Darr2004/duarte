@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Verify & Release
+   ========================================================================== */
+
+/* Left/right split: the lookup panel is a fixed, compact width — it
+   only ever holds an input and a button — so the result/log panel gets
+   the room it actually needs instead of two evenly-split, half-empty
+   columns. Top-aligned rather than stretched: a short lookup panel
+   sitting next to a long release log is a normal asymmetric layout,
+   not a mistake to hide by inflating one card's height. */
+.verify-grid {
+  align-items: flex-start;
+}
+.verify-lookup-card {
+  flex: 0 0 340px;
+}
+@media (max-width: 760px) {
+  .verify-lookup-card { flex: 1; }
+}
+
+/* Lookup card reads as a manifest stub: monospace entry field, a
+   stamped icon, one line of context instead of a paragraph. */
+.verify-lookup-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  border: 1px solid var(--line);
+  color: var(--amber);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-3);
+}
+.verify-lookup-icon svg { width: 20px; height: 20px; }
+
+.verify-lookup-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: var(--space-3);
+}
+.verify-lookup-form input {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+.verify-lookup-hint {
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  margin-top: var(--space-2);
+}
+
+/* Recently released — a denser ledger row than a generic list: status
+   dot, requester, request number, timestamp all on one line. */
+.release-log { display: flex; flex-direction: column; }
+.release-log-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.release-log-row:last-child { border-bottom: none; }
+.release-log-dot {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--green-tint);
+  color: var(--green-ok);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.release-log-dot svg { width: 14px; height: 14px; }
+.release-log-body { min-width: 0; flex: 1; display: flex; align-items: baseline; gap: 0.5rem; }
+.release-log-id { font-family: var(--font-mono); color: var(--ink-soft); font-size: var(--text-sm); flex-shrink: 0; }
+.release-log-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.release-log-time { flex-shrink: 0; color: var(--ink-soft); font-size: var(--text-sm); white-space: nowrap; }
