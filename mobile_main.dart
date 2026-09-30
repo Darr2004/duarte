@@ -574,8 +574,9 @@ final globalNotifications = NotificationsNotifier();
 // App Configuration & State Manager
 // ---------------------------------------------------------
 class AppConfig {
+  static const String renderUrl = 'https://duarte.onrender.com/api';
   static const String ngrokUrl = 'https://outshine-aroma-angles.ngrok-free.dev/duarte/api';
-  static const String defaultUrl = ngrokUrl;
+  static const String defaultUrl = renderUrl;
   static const String emulatorUrl = 'http://10.0.2.2/duarte/api';
   static const String localUrl = 'http://localhost/duarte/api';
 
