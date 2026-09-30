@@ -10,6 +10,9 @@ cron/*.log
 
 # Uploads
 uploads/items/*
+!uploads/items/*.png
+!uploads/items/*.jpg
+!uploads/items/*.jpeg
 uploads/profile/*
 !uploads/.htaccess
 !uploads/items/.htaccess
