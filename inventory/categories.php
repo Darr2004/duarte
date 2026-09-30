@@ -238,13 +238,13 @@ require __DIR__ . '/../includes/header.php';
 <table class="data">
     <thead>
       <tr>
-        <th>Name</th>
-        <th>Code Prefix</th>
-        <th>Stock Alert At</th>
-        <th>Issuance Type</th>
-        <th>Vehicle Requirement</th>
-        <th>Catalog Items</th>
-        <?php if ($is_admin): ?><th>Actions</th><?php endif; ?>
+        <th style="min-width:180px;">Name</th>
+        <th style="min-width:130px;">Code Prefix</th>
+        <th style="min-width:130px;">Stock Alert At</th>
+        <th style="min-width:170px;">Issuance Type</th>
+        <th style="min-width:150px;">Vehicle Requirement</th>
+        <th style="min-width:100px;">Catalog Items</th>
+        <?php if ($is_admin): ?><th style="min-width:90px; text-align:right;">Actions</th><?php endif; ?>
       </tr>
     </thead>
     <tbody>
@@ -304,13 +304,21 @@ require __DIR__ . '/../includes/header.php';
           </td>
           <td class="mono" data-label="Catalog Items"><?= (int)$c['item_count'] ?></td>
           <?php if ($is_admin): ?>
-            <td style="white-space:nowrap;" data-label="Actions">
-              <button type="submit" form="<?= $formId ?>" class="btn btn-outline btn-sm">Save</button>
-              <form method="post" onsubmit="return confirm('Delete category <?= htmlspecialchars(addslashes($c['name'])) ?>?');" style="display:inline;">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                <input type="hidden" name="delete_id" value="<?= $c['id'] ?>">
-                <button type="submit" class="btn btn-sm btn-danger" <?= $c['item_count'] > 0 ? 'disabled title="In use — cannot delete"' : '' ?>>Delete</button>
-              </form>
+            <td class="table-actions-cell" data-label="Actions">
+              <div class="table-actions-toolbar" style="justify-content:flex-end;">
+                <div class="table-action-pill">
+                  <button type="submit" form="<?= $formId ?>" class="table-action-btn btn-action-stockin" title="Save Category (I-save)" aria-label="Save">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <form method="post" onsubmit="return confirm('Delete category <?= htmlspecialchars(addslashes($c['name'])) ?>?');" style="display:contents;">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="delete_id" value="<?= $c['id'] ?>">
+                    <button type="submit" class="table-action-btn btn-action-danger" <?= $c['item_count'] > 0 ? 'disabled style="opacity:0.4; cursor:not-allowed;" title="In use — cannot delete"' : 'title="Delete Category (Burahin)" aria-label="Delete"' ?>>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                  </form>
+                </div>
+              </div>
             </td>
           <?php endif; ?>
         </tr>

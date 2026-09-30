@@ -184,7 +184,7 @@ require __DIR__ . '/../includes/header.php';
       <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
       <div class="table-responsive">
 <table class="data">
-        <thead><tr><th>Item</th><th>Available now</th><th>Option</th><th>Quantity</th><th>How</th><th>Borrow for</th><th></th></tr></thead>
+        <thead><tr><th style="min-width:200px;">Item</th><th style="min-width:110px;">Available now</th><th style="min-width:130px;">Option</th><th style="min-width:90px;">Quantity</th><th style="min-width:110px;">How</th><th style="min-width:110px;">Borrow for</th><th style="min-width:60px; text-align:right;"></th></tr></thead>
         <tbody>
           <?php foreach ($cart_items as $ci): ?>
             <tr>
@@ -251,8 +251,12 @@ require __DIR__ . '/../includes/header.php';
                   <span class="cart-days-placeholder" data-row="<?= $ci['id'] ?>" class="text-muted">— (consumable)</span>
                 <?php endif; ?>
               </td>
-              <td data-label="">
-                <button type="submit" formaction="<?= BASE_URL ?>/requisition/cart.php" name="remove_id" value="<?= $ci['id'] ?>" class="btn btn-danger btn-sm">Remove</button>
+              <td data-label="Actions" style="text-align:right;">
+                <div class="table-action-pill" style="justify-content:flex-end;">
+                  <button type="submit" formaction="<?= BASE_URL ?>/requisition/cart.php" name="remove_id" value="<?= $ci['id'] ?>" class="table-action-btn btn-action-danger" title="Remove from cart" aria-label="Remove from cart">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  </button>
+                </div>
               </td>
             </tr>
           <?php endforeach; ?>

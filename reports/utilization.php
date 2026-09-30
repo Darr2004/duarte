@@ -649,13 +649,13 @@ require __DIR__ . '/../includes/header.php';
     <table class="data">
       <thead>
         <tr>
-          <th>Plate Number</th>
-          <th>Model / Vehicle Type</th>
-          <th>Current Status</th>
-          <th>Requisitions (This Period)</th>
-          <th>Parts Units Requested</th>
-          <th>Last Requisition Date</th>
-          <th></th>
+          <th style="min-width:140px;">Plate Number</th>
+          <th style="min-width:180px;">Model / Vehicle Type</th>
+          <th style="min-width:130px;">Current Status</th>
+          <th style="min-width:180px;">Requisitions (This Period)</th>
+          <th style="min-width:160px;">Parts Units Requested</th>
+          <th style="min-width:170px;">Last Requisition Date</th>
+          <th style="min-width:70px; text-align:right;"></th>
         </tr>
       </thead>
       <tbody>
@@ -691,10 +691,12 @@ require __DIR__ . '/../includes/header.php';
             <td data-label="Last Requisition" class="mono" style="font-size:0.85rem;">
               <?= $trk['last_requisition_at'] ? htmlspecialchars((string)($trk['last_requisition_at'] ?? '')) : '<span class="text-muted">—</span>' ?>
             </td>
-            <td data-label="Action">
-              <a href="<?= BASE_URL ?>/requisition/all.php?q=<?= urlencode($trk['plate_number']) ?>" class="btn btn-outline btn-sm">
-                View Requests
-              </a>
+            <td data-label="Action" style="text-align:right;">
+              <div class="table-action-pill" style="justify-content:flex-end;">
+                <a href="<?= BASE_URL ?>/requisition/all.php?q=<?= urlencode($trk['plate_number']) ?>" class="table-action-btn btn-action-view" title="View vehicle requisitions" aria-label="View vehicle requisitions">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </a>
+              </div>
             </td>
           </tr>
         <?php endforeach; endif; ?>

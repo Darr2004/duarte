@@ -152,16 +152,16 @@ require __DIR__ . '/../includes/header.php';
   <?php endif; ?>
 </form>
 
-<div class="card" style="padding-bottom:0; overflow:hidden;">
+<div class="card" style="padding-bottom:0;">
   <div class="table-responsive">
     <table class="data">
       <thead>
         <tr>
-          <th style="width:38%;">Item &amp; Details</th>
-          <th style="width:20%;">Category &amp; Location</th>
-          <th style="width:16%;">Stock &amp; Qty</th>
-          <th style="width:10%;">Status</th>
-          <th style="width:16%; text-align:right;">Actions</th>
+          <th style="min-width:280px;">Item &amp; Details</th>
+          <th style="min-width:180px;">Category &amp; Location</th>
+          <th style="min-width:130px;">Stock &amp; Qty</th>
+          <th style="min-width:100px;">Status</th>
+          <th style="min-width:170px; text-align:right;">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -259,26 +259,25 @@ require __DIR__ . '/../includes/header.php';
 
             <td class="table-actions-cell" data-label="Actions">
               <div class="table-actions-toolbar">
-                <a href="<?= BASE_URL ?>/inventory/stock_in.php?item_id=<?= $it['id'] ?>"
-                   class="btn-table-stockin <?= $st['class'] === 'out-stock' ? 'is-urgent' : '' ?> js-open-stockin"
-                   data-item-id="<?= $it['id'] ?>"
-                   data-item-name="<?= htmlspecialchars($it['item_code'] . ' — ' . $it['name']) ?>"
-                   data-unit="<?= htmlspecialchars((string)($it['unit'] ?? '')) ?>"
-                   data-variant-label="<?= htmlspecialchars($it['variant_label'] ?? '') ?>"
-                   data-variants="<?= htmlspecialchars(json_encode(array_map(fn($v) => ['id' => $v['id'], 'value' => $v['variant_value'], 'note' => $v['variant_note'], 'qty' => $v['quantity_on_hand']], $iv))) ?>"
-                   title="Record incoming delivery / stock in">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  <span>Stock in</span>
-                </a>
-
                 <div class="table-action-pill">
-                  <a href="<?= BASE_URL ?>/inventory/item_edit.php?id=<?= $it['id'] ?>" class="table-action-btn js-open-itemedit" data-item-id="<?= $it['id'] ?>" title="Edit catalog item" aria-label="Edit">
+                  <a href="<?= BASE_URL ?>/inventory/stock_in.php?item_id=<?= $it['id'] ?>"
+                     class="table-action-btn btn-action-stockin <?= $st['class'] === 'out-stock' ? 'is-urgent' : '' ?> js-open-stockin"
+                     data-item-id="<?= $it['id'] ?>"
+                     data-item-name="<?= htmlspecialchars($it['item_code'] . ' — ' . $it['name']) ?>"
+                     data-unit="<?= htmlspecialchars((string)($it['unit'] ?? '')) ?>"
+                     data-variant-label="<?= htmlspecialchars($it['variant_label'] ?? '') ?>"
+                     data-variants="<?= htmlspecialchars(json_encode(array_map(fn($v) => ['id' => $v['id'], 'value' => $v['variant_value'], 'note' => $v['variant_note'], 'qty' => $v['quantity_on_hand']], $iv))) ?>"
+                     title="Stock In (+ Magpasok ng Stock)"
+                     aria-label="Stock in">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </a>
+                  <a href="<?= BASE_URL ?>/inventory/item_edit.php?id=<?= $it['id'] ?>" class="table-action-btn btn-action-edit js-open-itemedit" data-item-id="<?= $it['id'] ?>" title="Edit item details" aria-label="Edit">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                   </a>
-                  <a href="<?= BASE_URL ?>/inventory/stock_ledger.php?item=<?= $it['id'] ?>" class="table-action-btn" title="View stock movement history" aria-label="Stock Ledger">
+                  <a href="<?= BASE_URL ?>/inventory/stock_ledger.php?item=<?= $it['id'] ?>" class="table-action-btn btn-action-history" title="Stock movement history / ledger" aria-label="Stock Ledger">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   </a>
-                  <a href="<?= BASE_URL ?>/inventory/assets.php?item=<?= $it['id'] ?>" class="table-action-btn" title="Tracked QR assets" aria-label="Tracked Assets">
+                  <a href="<?= BASE_URL ?>/inventory/assets.php?item=<?= $it['id'] ?>" class="table-action-btn btn-action-qr" title="Tracked QR unit assets" aria-label="Tracked Assets">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="21" y2="21"/><line x1="21" y1="14" x2="14" y2="21"/></svg>
                   </a>
                   <?php if ($is_admin): ?>

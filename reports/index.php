@@ -929,19 +929,21 @@ $has_status_data = ($total_requisitions > 0);
       <div id="mReqsEmpty" style="display:none; text-align:center; padding:2rem 1rem; color:var(--ink-soft); font-size:0.85rem;">
         No requisitions filed by this personnel.
       </div>
-      <table class="data" id="mReqsTable" style="display:none; width:100%; font-size:0.82rem;">
-        <thead>
-          <tr>
-            <th style="width:10%;">#</th>
-            <th style="width:18%;">Submitted</th>
-            <th style="width:18%;">Truck</th>
-            <th style="width:32%;">Items</th>
-            <th style="width:12%;">Status</th>
-            <th style="width:10%; text-align:right;"></th>
-          </tr>
-        </thead>
-        <tbody id="mReqsTbody"></tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="data" id="mReqsTable" style="display:none; width:100%; font-size:0.82rem;">
+          <thead>
+            <tr>
+              <th style="min-width:60px;">#</th>
+              <th style="min-width:140px;">Submitted</th>
+              <th style="min-width:120px;">Truck</th>
+              <th style="min-width:200px;">Items</th>
+              <th style="min-width:110px;">Status</th>
+              <th style="min-width:70px; text-align:right;"></th>
+            </tr>
+          </thead>
+          <tbody id="mReqsTbody"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Panel 2: Tool Loans -->
@@ -949,18 +951,20 @@ $has_status_data = ($total_requisitions > 0);
       <div id="mLoansEmpty" style="display:none; text-align:center; padding:2rem 1rem; color:var(--ink-soft); font-size:0.85rem;">
         No tools or equipment borrowed by this personnel.
       </div>
-      <table class="data" id="mLoansTable" style="display:none; width:100%; font-size:0.82rem;">
-        <thead>
-          <tr>
-            <th style="width:10%;">#</th>
-            <th style="width:34%;">Tool / Equipment</th>
-            <th style="width:18%;">Asset Tag</th>
-            <th style="width:18%;">Borrowed</th>
-            <th style="width:20%;">Status</th>
-          </tr>
-        </thead>
-        <tbody id="mLoansTbody"></tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="data" id="mLoansTable" style="display:none; width:100%; font-size:0.82rem;">
+          <thead>
+            <tr>
+              <th style="min-width:60px;">#</th>
+              <th style="min-width:180px;">Tool / Equipment</th>
+              <th style="min-width:130px;">Asset Tag</th>
+              <th style="min-width:130px;">Borrowed</th>
+              <th style="min-width:120px;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="mLoansTbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -1028,7 +1032,7 @@ function openRequesterHistoryModal(userId) {
             '<td><span class="mono" style="font-size:0.75rem;">' + r.truck_plate + '</span></td>' +
             '<td style="font-size:0.78rem;" title="' + itemsSummary + '">' + (itemsSummary.length > 35 ? itemsSummary.substring(0, 35) + '...' : itemsSummary) + '</td>' +
             '<td><span class="badge ' + r.status_class + '">' + r.status_label + '</span></td>' +
-            '<td style="text-align:right;"><a href="<?= BASE_URL ?>/requisition/view.php?id=' + r.id + '" target="_blank" class="btn btn-outline btn-sm" style="height:22px; padding:0 0.4rem; font-size:0.68rem; line-height:20px;">View</a></td>';
+            '<td style="text-align:right;"><div class="table-action-pill" style="justify-content:flex-end;"><a href="<?= BASE_URL ?>/requisition/view.php?id=' + r.id + '" target="_blank" class="table-action-btn btn-action-view" title="View requisition details" aria-label="View requisition details"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></a></div></td>';
           reqsTbody.appendChild(tr);
         });
       }

@@ -133,7 +133,7 @@ require __DIR__ . '/../includes/header.php';
       </div>
       <div class="table-responsive">
 <table class="data">
-        <thead><tr><th style="width:2rem;">Found</th><th>Tag</th><th>Item</th><th>Qty</th><th>Current status</th><th>Location</th><th>Broken?</th></tr></thead>
+        <thead><tr><th style="width:3rem; min-width:48px;">Found</th><th style="min-width:130px;">Tag</th><th style="min-width:200px;">Item</th><th style="min-width:80px;">Qty</th><th style="min-width:130px;">Current status</th><th style="min-width:160px;">Location</th><th style="min-width:150px;">Broken?</th></tr></thead>
         <tbody>
           <?php foreach ($expected as $a): ?>
             <tr data-tag="<?= htmlspecialchars((string)($a['asset_tag'] ?? '')) ?>" data-name="<?= htmlspecialchars($a['item_name'] . ' (' . $a['asset_tag'] . ')') ?>">

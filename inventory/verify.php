@@ -497,7 +497,7 @@ require __DIR__ . '/../includes/header.php';
       <?php endif; ?>
       <div class="table-responsive">
 <table class="data mt-1">
-        <thead><tr><th>Item</th><th>Quantity</th></tr></thead>
+        <thead><tr><th style="min-width:240px;">Item</th><th style="min-width:120px;">Quantity</th></tr></thead>
         <tbody>
           <?php foreach ($items as $it): ?>
             <tr>

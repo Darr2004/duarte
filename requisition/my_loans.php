@@ -99,7 +99,7 @@ require __DIR__ . '/../includes/header.php';
   <div class="card">
     <div class="table-responsive">
 <table class="data">
-      <thead><tr><th>Request / Trip</th><th>Items</th><th>Status</th><th>Extension Status</th><th style="text-align:right;">Actions</th></tr></thead>
+      <thead><tr><th style="min-width:180px;">Request / Trip</th><th style="min-width:100px;">Items</th><th style="min-width:110px;">Status</th><th style="min-width:140px;">Extension Status</th><th style="min-width:100px; text-align:right;">Actions</th></tr></thead>
       <tbody>
         <?php foreach ($groups as $group):
           $summary_status = loan_group_status($group['loans']);
@@ -167,22 +167,25 @@ require __DIR__ . '/../includes/header.php';
                 <span class="text-muted" style="font-size:0.8rem;">Returned</span>
               <?php endif; ?>
             </td>
-            <td data-label="Actions" style="text-align:right; white-space:nowrap;">
-              <button type="button" class="btn btn-outline btn-sm js-view-loan-group"
-                data-loan-group="<?= htmlspecialchars(json_encode($row_data), ENT_QUOTES, 'UTF-8') ?>">
-                View
-              </button>
-              <?php if ($has_unreturned && !$has_pending_ext): ?>
-                <?php if ($group['requisition_id'] !== null): ?>
-                  <button type="button" class="btn btn-primary btn-sm js-trigger-trip-ext"
-                    style="margin-left:4px;"
-                    data-req-id="<?= (int)$group['requisition_id'] ?>"
-                    data-tool-count="<?= count($unreturned_loans) ?>"
-                    data-label="<?= htmlspecialchars($row_label) ?>">
-                    🚚 Extend Trip
-                  </button>
+            <td data-label="Actions" style="text-align:right;">
+              <div class="table-action-pill" style="justify-content:flex-end;">
+                <button type="button" class="table-action-btn btn-action-view js-view-loan-group"
+                  title="View borrowed tools" aria-label="View borrowed tools"
+                  data-loan-group="<?= htmlspecialchars(json_encode($row_data), ENT_QUOTES, 'UTF-8') ?>">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+                <?php if ($has_unreturned && !$has_pending_ext): ?>
+                  <?php if ($group['requisition_id'] !== null): ?>
+                    <button type="button" class="table-action-btn btn-action-stockin js-trigger-trip-ext"
+                      title="Request trip extension" aria-label="Request trip extension"
+                      data-req-id="<?= (int)$group['requisition_id'] ?>"
+                      data-tool-count="<?= count($unreturned_loans) ?>"
+                      data-label="<?= htmlspecialchars($row_label) ?>">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M12 14v4"/><path d="M10 16h4"/></svg>
+                    </button>
+                  <?php endif; ?>
                 <?php endif; ?>
-              <?php endif; ?>
+              </div>
             </td>
           </tr>
         <?php endforeach; ?>
@@ -204,7 +207,7 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="table-responsive">
       <table class="data" style="min-width:0;">
-        <thead><tr><th>Item</th><th>Qty</th><th>Borrowed</th><th>Due Date</th><th>Returned</th><th>Status</th><th style="text-align:right;">Trip Extension</th></tr></thead>
+        <thead><tr><th style="min-width:160px;">Item</th><th style="min-width:70px;">Qty</th><th style="min-width:110px;">Borrowed</th><th style="min-width:110px;">Due Date</th><th style="min-width:110px;">Returned</th><th style="min-width:100px;">Status</th><th style="min-width:130px; text-align:right;">Trip Extension</th></tr></thead>
         <tbody id="loanModalItems"></tbody>
       </table>
     </div>

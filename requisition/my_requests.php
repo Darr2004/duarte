@@ -76,7 +76,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="card">
   <div class="table-responsive">
 <table class="data">
-    <thead><tr><th>#</th><th>Submitted</th><th>Truck Plate</th><th>Items</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th style="min-width:70px;">#</th><th style="min-width:160px;">Submitted</th><th style="min-width:140px;">Truck Plate</th><th style="min-width:100px;">Items</th><th style="min-width:120px;">Status</th><th style="min-width:80px; text-align:right;">Actions</th></tr></thead>
     <tbody>
       <?php if (!$requests): ?>
         <tr><td colspan="6">You haven't submitted any requisitions yet.</td></tr>
@@ -131,11 +131,14 @@ require __DIR__ . '/../includes/header.php';
           </td>
           <td data-label="Items" class="td-detail"><?= (int)$r['item_count'] ?> item(s)</td>
           <td data-label="Status"><span class="badge <?= requisition_status_class($r['status']) ?>"><?= htmlspecialchars((string)($r['status'] ?? '')) ?></span></td>
-          <td data-label="" class="td-detail">
-            <button type="button" class="btn btn-outline btn-sm js-view-requisition"
-              data-requisition="<?= htmlspecialchars(json_encode($row_data), ENT_QUOTES, 'UTF-8') ?>">
-              View
-            </button>
+          <td data-label="Actions" class="td-detail" style="text-align:right;">
+            <div class="table-action-pill" style="justify-content:flex-end;">
+              <button type="button" class="table-action-btn btn-action-view js-view-requisition"
+                title="View requisition details" aria-label="View requisition details"
+                data-requisition="<?= htmlspecialchars(json_encode($row_data), ENT_QUOTES, 'UTF-8') ?>">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
           </td>
         </tr>
       <?php endforeach; endif; ?>

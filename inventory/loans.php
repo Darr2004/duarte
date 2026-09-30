@@ -220,12 +220,12 @@ require __DIR__ . '/../includes/header.php';
       <table class="data">
         <thead>
           <tr>
-            <th>Borrower / Trip</th>
-            <th>Tool / Asset</th>
-            <th>Current Due</th>
-            <th>Requested Extension</th>
-            <th>Driver's Reason</th>
-            <th style="text-align:right;">Staff Decision</th>
+            <th style="min-width:180px;">Borrower / Trip</th>
+            <th style="min-width:180px;">Tool / Asset</th>
+            <th style="min-width:120px;">Current Due</th>
+            <th style="min-width:150px;">Requested Extension</th>
+            <th style="min-width:180px;">Driver's Reason</th>
+            <th style="min-width:100px; text-align:right;">Staff Decision</th>
           </tr>
         </thead>
         <tbody>
@@ -268,19 +268,25 @@ require __DIR__ . '/../includes/header.php';
                 <div style="font-size:0.75rem; color:var(--ink-soft); margin-top:2px;">Requested: <?= htmlspecialchars((string)($pe['extension_requested_at'] ?? '')) ?></div>
               </td>
               <td data-label="Staff Decision" style="text-align:right; white-space:nowrap;">
-                <form method="post" style="display:inline-block;" onsubmit="return confirm('Approve +<?= (int)$pe['extension_days'] ?> days extension for <?= htmlspecialchars(addslashes($pe['item_name'])) ?>? New due date will be <?= $tentative_due ?>.');">
-                  <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                  <input type="hidden" name="extension_action" value="approve">
-                  <input type="hidden" name="loan_id" value="<?= (int)$pe['id'] ?>">
-                  <button type="submit" class="btn btn-primary btn-sm" style="background:#28a745; border-color:#28a745;">✓ Approve</button>
-                </form>
-                <form method="post" style="display:inline-block; margin-left:4px;" onsubmit="var note = prompt('Optional reason for declining:'); if (note === null) return false; this.decision_note.value = note; return true;">
-                  <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                  <input type="hidden" name="extension_action" value="decline">
-                  <input type="hidden" name="loan_id" value="<?= (int)$pe['id'] ?>">
-                  <input type="hidden" name="decision_note" value="">
-                  <button type="submit" class="btn btn-outline btn-sm" style="color:var(--red-danger); border-color:var(--red-danger);">✗ Decline</button>
-                </form>
+                <div class="table-action-pill" style="justify-content:flex-end;">
+                  <form method="post" style="display:contents;" onsubmit="return confirm('Approve +<?= (int)$pe['extension_days'] ?> days extension for <?= htmlspecialchars(addslashes($pe['item_name'])) ?>? New due date will be <?= $tentative_due ?>.');">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="extension_action" value="approve">
+                    <input type="hidden" name="loan_id" value="<?= (int)$pe['id'] ?>">
+                    <button type="submit" class="table-action-btn btn-action-stockin" title="Approve Extension (Aprubahan)" aria-label="Approve">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </button>
+                  </form>
+                  <form method="post" style="display:contents;" onsubmit="var note = prompt('Optional reason for declining:'); if (note === null) return false; this.decision_note.value = note; return true;">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="extension_action" value="decline">
+                    <input type="hidden" name="loan_id" value="<?= (int)$pe['id'] ?>">
+                    <input type="hidden" name="decision_note" value="">
+                    <button type="submit" class="table-action-btn btn-action-danger" title="Decline Extension (Tanggihan)" aria-label="Decline">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </form>
+                </div>
               </td>
             </tr>
           <?php endforeach; ?>

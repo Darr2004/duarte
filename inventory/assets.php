@@ -201,18 +201,18 @@ require __DIR__ . '/../includes/header.php';
     <?php endif; ?>
   </div>
 <?php else: ?>
-  <div class="card" style="padding-bottom:0; overflow:hidden;">
+  <div class="card" style="padding-bottom:0;">
     <div class="table-responsive">
       <table class="data">
         <thead>
           <tr>
-            <th style="width:14%;">Tag</th>
-            <th style="width:30%;">Item</th>
-            <th style="width:8%;">Qty</th>
-            <th style="width:14%;">Status</th>
-            <th style="width:18%;">Holder / Location</th>
-            <th style="width:12%;">Last activity</th>
-            <th style="width:4%; text-align:right;"></th>
+            <th style="min-width:110px;">Tag</th>
+            <th style="min-width:220px;">Item</th>
+            <th style="min-width:70px;">Qty</th>
+            <th style="min-width:120px;">Status</th>
+            <th style="min-width:160px;">Holder / Location</th>
+            <th style="min-width:140px;">Last activity</th>
+            <th style="min-width:60px; text-align:right;"></th>
           </tr>
         </thead>
         <tbody>
@@ -237,7 +237,9 @@ require __DIR__ . '/../includes/header.php';
               </td>
               <td class="mono td-detail" data-label="Last activity" style="font-size:0.8rem; color:var(--ink-soft);"><?= htmlspecialchars(date('M j, Y g:ia', strtotime($a['updated_at']))) ?></td>
               <td style="white-space:nowrap; text-align:right;" data-label="">
-                <a href="<?= BASE_URL ?>/inventory/asset_view.php?tag=<?= urlencode($a['asset_tag']) ?>" class="btn btn-outline btn-sm" style="height:30px; padding:0 0.65rem;">Open</a>
+                <a href="<?= BASE_URL ?>/inventory/asset_view.php?tag=<?= urlencode($a['asset_tag']) ?>" class="table-action-btn btn-action-view" title="View Asset Details" aria-label="Open">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </a>
               </td>
             </tr>
           <?php endforeach; ?>

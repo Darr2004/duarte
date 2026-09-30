@@ -50,7 +50,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="card">
   <div class="table-responsive">
 <table class="data">
-    <thead><tr><th>PO #</th><th>Item Requested</th><th>Qty</th><th>Reason / Purpose</th><th>Date Requested</th><th>PO Status</th></tr></thead>
+    <thead><tr><th style="min-width:80px;">PO #</th><th style="min-width:180px;">Item Requested</th><th style="min-width:90px;">Qty</th><th style="min-width:200px;">Reason / Purpose</th><th style="min-width:160px;">Date Requested</th><th style="min-width:140px;">PO Status</th></tr></thead>
     <tbody>
       <?php if (!$requests): ?>
         <tr><td colspan="6" style="text-align:center; padding:2rem 1rem;">You haven't submitted any purchase requests yet.</td></tr>

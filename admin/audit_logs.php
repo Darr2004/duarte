@@ -153,15 +153,15 @@ require __DIR__ . '/../includes/header.php';
   <?= $total ?> event<?= $total === 1 ? '' : 's' ?><?= $has_filters ? ' match this filter' : ' recorded' ?>.
 </div>
 
-<div class="card" style="padding-bottom:0; overflow:hidden;">
+<div class="card" style="padding-bottom:0;">
   <div class="table-responsive">
     <table class="data">
       <thead>
         <tr>
-          <th style="width:16%;">Date &amp; time</th>
-          <th style="width:15%;">Action</th>
-          <th style="width:20%;">Who &amp; IP</th>
-          <th style="width:49%;">Description</th>
+          <th style="min-width:150px;">Date &amp; time</th>
+          <th style="min-width:140px;">Action</th>
+          <th style="min-width:180px;">Who &amp; IP</th>
+          <th style="min-width:320px;">Description</th>
         </tr>
       </thead>
       <tbody>

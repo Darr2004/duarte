@@ -201,7 +201,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="card" style="margin-bottom:2rem;">
   <div class="table-responsive">
     <table class="data">
-      <thead><tr><th>Room #</th><th>Name</th><th>Stalls</th><th style="text-align:right;">Actions</th></tr></thead>
+      <thead><tr><th style="min-width:100px;">Room #</th><th style="min-width:200px;">Name</th><th style="min-width:100px;">Stalls</th><th style="min-width:90px; text-align:right;">Actions</th></tr></thead>
       <tbody>
         <?php if (!$rooms): ?>
           <tr><td colspan="4">No rooms yet.</td></tr>
@@ -212,11 +212,15 @@ require __DIR__ . '/../includes/header.php';
             <td data-label="Name" style="font-weight:600;"><?= htmlspecialchars((string)($r['name'] ?? '')) ?></td>
             <td class="mono" data-label="Stalls"><?= (int)$r['stall_count'] ?></td>
             <td style="text-align:right;" data-label="Actions">
-              <form method="post" onsubmit="return confirm('Delete room <?= htmlspecialchars(addslashes($r['name'])) ?>?');" style="display:inline;">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                <input type="hidden" name="delete_room_id" value="<?= $r['id'] ?>">
-                <button type="submit" class="btn btn-sm btn-danger" <?= $r['stall_count'] > 0 ? 'disabled title="In use — cannot delete"' : '' ?>>Delete</button>
-              </form>
+              <div class="table-action-pill" style="justify-content:flex-end;">
+                <form method="post" onsubmit="return confirm('Delete room <?= htmlspecialchars(addslashes($r['name'])) ?>?');" style="display:inline; margin:0;">
+                  <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                  <input type="hidden" name="delete_room_id" value="<?= $r['id'] ?>">
+                  <button type="submit" class="table-action-btn btn-action-danger" <?= $r['stall_count'] > 0 ? 'disabled title="In use — cannot delete"' : 'title="Delete room" aria-label="Delete room"' ?>>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  </button>
+                </form>
+              </div>
             </td>
           </tr>
         <?php endforeach; ?>
@@ -257,7 +261,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="card" style="margin-bottom:2rem;">
   <div class="table-responsive">
     <table class="data">
-      <thead><tr><th>Room</th><th>Stall #</th><th>Name</th><th>Layers</th><th style="text-align:right;">Actions</th></tr></thead>
+      <thead><tr><th style="min-width:180px;">Room</th><th style="min-width:100px;">Stall #</th><th style="min-width:180px;">Name</th><th style="min-width:100px;">Layers</th><th style="min-width:90px; text-align:right;">Actions</th></tr></thead>
       <tbody>
         <?php if (!$stalls): ?>
           <tr><td colspan="5">No stalls yet.</td></tr>
@@ -269,11 +273,15 @@ require __DIR__ . '/../includes/header.php';
             <td data-label="Name" style="font-weight:600;"><?= htmlspecialchars((string)($s['name'] ?? '')) ?></td>
             <td class="mono" data-label="Layers"><?= (int)$s['layer_count'] ?></td>
             <td style="text-align:right;" data-label="Actions">
-              <form method="post" onsubmit="return confirm('Delete stall <?= htmlspecialchars(addslashes($s['name'])) ?>?');" style="display:inline;">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                <input type="hidden" name="delete_stall_id" value="<?= $s['id'] ?>">
-                <button type="submit" class="btn btn-sm btn-danger" <?= $s['layer_count'] > 0 ? 'disabled title="In use — cannot delete"' : '' ?>>Delete</button>
-              </form>
+              <div class="table-action-pill" style="justify-content:flex-end;">
+                <form method="post" onsubmit="return confirm('Delete stall <?= htmlspecialchars(addslashes($s['name'])) ?>?');" style="display:inline; margin:0;">
+                  <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                  <input type="hidden" name="delete_stall_id" value="<?= $s['id'] ?>">
+                  <button type="submit" class="table-action-btn btn-action-danger" <?= $s['layer_count'] > 0 ? 'disabled title="In use — cannot delete"' : 'title="Delete stall" aria-label="Delete stall"' ?>>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  </button>
+                </form>
+              </div>
             </td>
           </tr>
         <?php endforeach; ?>
@@ -314,7 +322,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="card">
   <div class="table-responsive">
     <table class="data">
-      <thead><tr><th>Room</th><th>Stall</th><th>Layer #</th><th>Layer Name</th><th>Items</th><th style="text-align:right;">Actions</th></tr></thead>
+      <thead><tr><th style="min-width:180px;">Room</th><th style="min-width:180px;">Stall</th><th style="min-width:100px;">Layer #</th><th style="min-width:160px;">Layer Name</th><th style="min-width:100px;">Items</th><th style="min-width:90px; text-align:right;">Actions</th></tr></thead>
       <tbody>
         <?php if (!$layers): ?>
           <tr><td colspan="6">No layers yet.</td></tr>
@@ -327,11 +335,15 @@ require __DIR__ . '/../includes/header.php';
             <td data-label="Layer Name" style="font-weight:600;"><?= htmlspecialchars((string)($l['layer_name'] ?? '')) ?></td>
             <td class="mono" data-label="Items"><?= (int)$l['item_count'] ?></td>
             <td style="text-align:right;" data-label="Actions">
-              <form method="post" onsubmit="return confirm('Delete layer <?= htmlspecialchars(addslashes($l['layer_name'])) ?>?');" style="display:inline;">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                <input type="hidden" name="delete_layer_id" value="<?= $l['id'] ?>">
-                <button type="submit" class="btn btn-sm btn-danger" <?= $l['item_count'] > 0 ? 'disabled title="In use — cannot delete"' : '' ?>>Delete</button>
-              </form>
+              <div class="table-action-pill" style="justify-content:flex-end;">
+                <form method="post" onsubmit="return confirm('Delete layer <?= htmlspecialchars(addslashes($l['layer_name'])) ?>?');" style="display:inline; margin:0;">
+                  <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                  <input type="hidden" name="delete_layer_id" value="<?= $l['id'] ?>">
+                  <button type="submit" class="table-action-btn btn-action-danger" <?= $l['item_count'] > 0 ? 'disabled title="In use — cannot delete"' : 'title="Delete layer" aria-label="Delete layer"' ?>>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  </button>
+                </form>
+              </div>
             </td>
           </tr>
         <?php endforeach; ?>

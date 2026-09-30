@@ -157,16 +157,16 @@ require __DIR__ . '/../includes/header.php';
 <div class="filter-bar-note">Showing <?= count($users) ?> matching account<?= count($users) === 1 ? '' : 's' ?></div>
 <?php endif; ?>
 
-<div class="card" style="padding-bottom:0; overflow:hidden;">
+<div class="card" style="padding-bottom:0;">
   <div class="table-responsive">
     <table class="data">
       <thead>
         <tr>
-          <th style="width:34%;">User Account</th>
-          <th style="width:20%;">Role &amp; Position</th>
-          <th style="width:18%;">Contact (SMS)</th>
-          <th style="width:16%;">Status &amp; Activity</th>
-          <th style="width:12%; text-align:right;">Actions</th>
+          <th style="min-width:240px;">User Account</th>
+          <th style="min-width:180px;">Role &amp; Position</th>
+          <th style="min-width:160px;">Contact (SMS)</th>
+          <th style="min-width:160px;">Status &amp; Activity</th>
+          <th style="min-width:110px; text-align:right;">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -204,14 +204,22 @@ require __DIR__ . '/../includes/header.php';
             </td>
             <td class="table-actions-cell" data-label="Actions">
               <div class="table-actions-toolbar" style="justify-content:flex-end;">
-                <a href="<?= BASE_URL ?>/admin/user_edit.php?id=<?= $u['id'] ?>" class="btn btn-outline btn-sm" style="height:30px; padding:0 0.65rem;">Edit</a>
-                <form method="post" style="display:inline;" onsubmit="return confirm('Change status for <?= htmlspecialchars(addslashes($u['full_name'])) ?>?');">
-                  <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                  <input type="hidden" name="toggle_id" value="<?= $u['id'] ?>">
-                  <button type="submit" class="btn btn-sm <?= $u['status'] === 'active' ? 'btn-danger' : 'btn-outline' ?>" style="height:30px; padding:0 0.65rem;">
-                    <?= $u['status'] === 'active' ? 'Deactivate' : 'Activate' ?>
-                  </button>
-                </form>
+                <div class="table-action-pill">
+                  <a href="<?= BASE_URL ?>/admin/user_edit.php?id=<?= $u['id'] ?>" class="table-action-btn btn-action-edit" title="Edit User (I-edit)" aria-label="Edit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </a>
+                  <form method="post" style="display:contents;" onsubmit="return confirm('Change status for <?= htmlspecialchars(addslashes($u['full_name'])) ?>?');">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="toggle_id" value="<?= $u['id'] ?>">
+                    <button type="submit" class="table-action-btn <?= $u['status'] === 'active' ? 'table-action-toggle is-on' : 'table-action-toggle is-off' ?>" title="<?= $u['status'] === 'active' ? 'Active Account — click to deactivate' : 'Inactive Account — click to activate' ?>" aria-label="<?= $u['status'] === 'active' ? 'Deactivate' : 'Activate' ?>">
+                      <?php if ($u['status'] === 'active'): ?>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="22" height="10" rx="5"/><circle cx="16" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+                      <?php else: ?>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="22" height="10" rx="5"/><circle cx="8" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+                      <?php endif; ?>
+                    </button>
+                  </form>
+                </div>
               </div>
             </td>
           </tr>

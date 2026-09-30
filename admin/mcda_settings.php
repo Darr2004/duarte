@@ -298,16 +298,16 @@ require_once __DIR__ . '/../includes/header.php';
       </p>
     <?php else: ?>
       <div style="overflow-x: auto;">
-        <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 720px;">
           <thead>
-            <tr style="background: var(--paper, #F7F5F0); text-align: left; border-bottom: 2px solid var(--line, #E5DFD7);">
-              <th style="padding: 10px 12px;">Rank</th>
-              <th style="padding: 10px 12px;">Req ID</th>
-              <th style="padding: 10px 12px;">Requester & Vehicle</th>
-              <th style="padding: 10px 12px;">Stock (Scarcity)</th>
-              <th style="padding: 10px 12px;">Demand (Contention)</th>
-              <th style="padding: 10px 12px;">Trust (Reliability)</th>
-              <th style="padding: 10px 12px; text-align: right;">Composite MCDA</th>
+            <tr style="background: var(--paper, #F7F5F0); text-align: left; border-bottom: 2px solid var(--line, #E5DFD7); white-space: nowrap;">
+              <th style="padding: 10px 12px; min-width: 60px;">Rank</th>
+              <th style="padding: 10px 12px; min-width: 90px;">Req ID</th>
+              <th style="padding: 10px 12px; min-width: 170px;">Requester &amp; Vehicle</th>
+              <th style="padding: 10px 12px; min-width: 120px;">Stock (Scarcity)</th>
+              <th style="padding: 10px 12px; min-width: 130px;">Demand (Contention)</th>
+              <th style="padding: 10px 12px; min-width: 130px;">Trust (Reliability)</th>
+              <th style="padding: 10px 12px; min-width: 120px; text-align: right;">Composite MCDA</th>
             </tr>
           </thead>
           <tbody>

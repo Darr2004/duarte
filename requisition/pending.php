@@ -50,7 +50,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="card">
   <div class="table-responsive">
 <table class="data">
-    <thead><tr><th>#</th><th>Requester</th><?php if ($sort === 'priority'): ?><th>Priority</th><?php endif; ?><th>Submitted</th><th>Items</th><th>Purpose</th><th></th></tr></thead>
+    <thead><tr><th style="min-width:60px;">#</th><th style="min-width:200px;">Requester</th><?php if ($sort === 'priority'): ?><th style="min-width:140px;">Priority</th><?php endif; ?><th style="min-width:160px;">Submitted</th><th style="min-width:90px;">Items</th><th style="min-width:200px;">Purpose</th><th style="min-width:60px; text-align:right;"></th></tr></thead>
     <tbody>
       <?php if (!$requests): ?>
         <tr><td colspan="7">Nothing waiting on you right now.</td></tr>
@@ -102,7 +102,7 @@ require __DIR__ . '/../includes/header.php';
             <?php endif; ?>
             <?= htmlspecialchars($r['purpose'] ?? '—') ?>
           </td>
-          <td data-label="" class="td-detail"><a href="<?= BASE_URL ?>/requisition/view.php?id=<?= $r['id'] ?>" class="btn btn-primary btn-sm">Review</a></td>
+          <td data-label="" class="td-detail" style="text-align:right;"><a href="<?= BASE_URL ?>/requisition/view.php?id=<?= $r['id'] ?>" class="table-action-btn btn-action-view" title="Review Requisition" aria-label="Review" style="background:var(--amber); color:#fff; border-color:var(--amber);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></a></td>
         </tr>
       <?php endforeach; endif; ?>
     </tbody>

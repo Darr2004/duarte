@@ -306,7 +306,7 @@ require __DIR__ . '/../includes/header.php';
   <div class="table-responsive">
   <table class="data">
     <thead>
-      <tr><th>Requester</th><th>Reason</th><th>Decided</th><th></th></tr>
+      <tr><th style="min-width:180px;">Requester</th><th style="min-width:220px;">Reason</th><th style="min-width:140px;">Decided</th><th style="min-width:60px; text-align:right;"></th></tr>
     </thead>
     <tbody>
       <?php foreach ($recent_auto_approved as $ra): ?>
@@ -316,7 +316,7 @@ require __DIR__ . '/../includes/header.php';
           </td>
           <td class="td-detail" data-label="Reason"><?= htmlspecialchars(requisition_no_review_reason($ra['decision_note'] ?? null)) ?></td>
           <td class="mono td-detail nowrap" data-label="Decided"><?= htmlspecialchars((string)($ra['decided_at'] ?? '')) ?></td>
-          <td data-label=""><a href="<?= BASE_URL ?>/requisition/view.php?id=<?= (int)$ra['id'] ?>" class="btn btn-outline btn-sm">View →</a></td>
+          <td data-label="" style="text-align:right;"><a href="<?= BASE_URL ?>/requisition/view.php?id=<?= (int)$ra['id'] ?>" class="table-action-btn btn-action-view" title="View Requisition" aria-label="View"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="3"/></svg></a></td>
         </tr>
       <?php endforeach; ?>
     </tbody>

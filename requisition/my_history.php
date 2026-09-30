@@ -316,18 +316,18 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- Tab Panel 1: Requisitions -->
-<div id="panelReqs" class="card" style="padding-bottom:0; overflow:hidden;">
+<div id="panelReqs" class="card" style="padding-bottom:0;">
   <div class="table-responsive">
     <table class="data">
       <thead>
         <tr>
-          <th style="width:8%;">#</th>
-          <th style="width:16%;">Submitted</th>
-          <th style="width:14%;">Truck Plate</th>
-          <th style="width:20%;">Purpose</th>
-          <th style="width:24%;">Items Requested</th>
-          <th style="width:10%;">Status</th>
-          <th style="width:8%; text-align:right;"></th>
+          <th style="min-width:60px;">#</th>
+          <th style="min-width:150px;">Submitted</th>
+          <th style="min-width:130px;">Truck Plate</th>
+          <th style="min-width:180px;">Purpose</th>
+          <th style="min-width:200px;">Items Requested</th>
+          <th style="min-width:120px;">Status</th>
+          <th style="min-width:60px; text-align:right;"></th>
         </tr>
       </thead>
       <tbody>
@@ -366,8 +366,8 @@ require __DIR__ . '/../includes/header.php';
               <?php endif; ?>
             </td>
             <td style="white-space:nowrap; text-align:right;" data-label="">
-              <a href="<?= BASE_URL ?>/requisition/view.php?id=<?= $r['id'] ?>" class="btn btn-outline btn-sm" style="height:28px; padding:0 0.6rem; font-size:0.75rem;">
-                View
+              <a href="<?= BASE_URL ?>/requisition/view.php?id=<?= $r['id'] ?>" class="table-action-btn btn-action-view" title="View Requisition Details" aria-label="View">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
               </a>
             </td>
           </tr>
@@ -378,18 +378,18 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- Tab Panel 2: Tool Loans -->
-<div id="panelLoans" class="card" style="padding-bottom:0; overflow:hidden; display:none;">
+<div id="panelLoans" class="card" style="padding-bottom:0; display:none;">
   <div class="table-responsive">
     <table class="data">
       <thead>
         <tr>
-          <th style="width:8%;">Loan #</th>
-          <th style="width:26%;">Tool &amp; Equipment</th>
-          <th style="width:14%;">Asset Tag</th>
-          <th style="width:8%;">Qty</th>
-          <th style="width:14%;">Borrowed Date</th>
-          <th style="width:14%;">Due Date</th>
-          <th style="width:16%;">Return Status</th>
+          <th style="min-width:70px;">Loan #</th>
+          <th style="min-width:200px;">Tool &amp; Equipment</th>
+          <th style="min-width:120px;">Asset Tag</th>
+          <th style="min-width:70px;">Qty</th>
+          <th style="min-width:140px;">Borrowed Date</th>
+          <th style="min-width:140px;">Due Date</th>
+          <th style="min-width:130px;">Return Status</th>
         </tr>
       </thead>
       <tbody>

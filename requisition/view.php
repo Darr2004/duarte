@@ -597,7 +597,7 @@ if (!empty($req['truck_id']) && in_array($req['status'], ['pending', 'approved']
   <h2 class="card-heading">Requested items</h2>
   <div class="table-responsive">
 <table class="data">
-    <thead><tr><th>Item</th><th>Quantity</th><th>Type</th></tr></thead>
+    <thead><tr><th style="min-width:240px;">Item</th><th style="min-width:110px;">Quantity</th><th style="min-width:140px;">Type</th></tr></thead>
     <tbody>
       <?php foreach ($items as $it): ?>
         <tr>

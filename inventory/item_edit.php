@@ -503,7 +503,7 @@ if (!$is_ajax) {
         </div>
         <div class="table-responsive">
         <table class="data" id="existingVariantsTable" style="margin-top:0.15rem;">
-          <thead><tr><th>Stock</th><th>Quantity</th><th></th></tr></thead>
+          <thead><tr><th style="min-width:160px;">Stock</th><th style="min-width:130px;">Quantity</th><th style="min-width:110px; text-align:right;"></th></tr></thead>
           <tbody>
             <?php
             $variant_modals_html = '';

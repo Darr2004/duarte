@@ -233,12 +233,12 @@ require __DIR__ . '/../includes/header.php';
     <table class="data">
       <thead>
         <tr>
-          <th>Plate Number</th>
-          <th>Model / Vehicle Type</th>
-          <th>Current Status</th>
-          <th>Active Parts/Requests</th>
-          <th>Notes</th>
-          <?php if ($can_manage): ?><th>Quick Action</th><?php endif; ?>
+          <th style="min-width:140px;">Plate Number</th>
+          <th style="min-width:180px;">Model / Vehicle Type</th>
+          <th style="min-width:140px;">Current Status</th>
+          <th style="min-width:160px;">Active Parts / Requests</th>
+          <th style="min-width:180px;">Notes</th>
+          <?php if ($can_manage): ?><th style="min-width:150px; text-align:right;">Quick Action</th><?php endif; ?>
         </tr>
       </thead>
       <tbody>
