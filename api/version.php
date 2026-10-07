@@ -18,14 +18,14 @@ $base = (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== 
 $response = [
     'status' => 'success',
     'app_name' => 'DuaRTE Mobile',
-    'latest_version_code' => 14,
-    'latest_version_name' => '1.2.9',
+    'latest_version_code' => 15,
+    'latest_version_name' => '1.3.0',
     'min_supported_version_code' => 1,
-    'apk_url' => 'https://github.com/Darr2004/duarte/releases/download/v1.2.9/duarte-app.apk',
-    'direct_apk_url' => 'https://github.com/Darr2004/duarte/releases/download/v1.2.9/duarte-app.apk',
+    'apk_url' => 'https://github.com/Darr2004/duarte/releases/download/v1.3.0/duarte-app.apk',
+    'direct_apk_url' => 'https://github.com/Darr2004/duarte/releases/download/v1.3.0/duarte-app.apk',
     'force_update' => false,
-    'release_title' => 'Pinadaling Portal para sa Bodega (Smart Scan, Bodega & Hiram)',
-    'release_notes' => "• Na-streamline ang Inventory Portal sa 3 praktikal na tabs: [Scanner], [Bodega], at [Mga Hiram].\n• Tinanggal ang duplicate na scan tab para hindi malito ang bodegero habang naglalakad sa mga racks.\n• May real-time rack/stall locator at item condition checker.",
+    'release_title' => 'Malinaw na Reference Code sa Ilalim ng QR at Manual Fallback',
+    'release_notes' => "• May malinaw na 'Reference Code' (hal. REQ-081) na nakalimbag sa mismong ilalim ng QR ng driver/requester kung sakaling hindi ma-scan ang QR.\n• Pwedeng i-type o piliin nang direkta ng Inventory Staff sa bodega nang walang aberya.",
     'updated_at' => date('Y-m-d')
 ];
 

@@ -554,7 +554,11 @@ if (!empty($req['truck_id']) && in_array($req['status'], ['pending', 'approved']
       <p style="color:var(--green-ok); font-weight:600;">Already released — items received.</p>
     <?php else: ?>
       <div id="qr-canvas" style="display:flex; justify-content:center; margin-bottom:0.75rem;"></div>
-      <p style="font-size:0.82rem; color:var(--ink-soft); margin-bottom:0.75rem;">Show at warehouse.</p>
+      <div style="background:var(--paper, #f8fafc); border:1px solid var(--line, #e2e8f0); border-radius:8px; padding:6px 14px; margin:0 auto 0.6rem auto; display:inline-block;">
+        <span style="font-size:0.72rem; text-transform:uppercase; color:var(--ink-soft); letter-spacing:0.5px; display:block; font-weight:600;">Reference Code</span>
+        <strong style="font-size:1.15rem; color:var(--ink); font-family:monospace; letter-spacing:1px;">REQ-<?= str_pad((string)$req['id'], 3, '0', STR_PAD_LEFT) ?></strong>
+      </div>
+      <p style="font-size:0.8rem; color:var(--ink-soft); margin-bottom:0.75rem;">Ipakita o sabihin ang code sa bodega kung hindi ma-scan ang QR.</p>
       <button type="button" id="qr-download-btn" class="btn btn-outline btn-sm">Download QR Code</button>
     <?php endif; ?>
   </div>

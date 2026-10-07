@@ -11695,7 +11695,13 @@ class DynamicHandshakeHelper {
 class DynamicPickupQrWidget extends StatefulWidget {
   final String qrToken;
   final dynamic userId;
-  const DynamicPickupQrWidget({super.key, required this.qrToken, required this.userId});
+  final dynamic requisitionId;
+  const DynamicPickupQrWidget({
+    super.key,
+    required this.qrToken,
+    required this.userId,
+    this.requisitionId,
+  });
 
   @override
   State<DynamicPickupQrWidget> createState() => _DynamicPickupQrWidgetState();
@@ -11760,6 +11766,30 @@ class _DynamicPickupQrWidgetState extends State<DynamicPickupQrWidget> {
             ),
           ),
         ),
+        if (widget.requisitionId != null) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceSubtle,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'REFERENCE CODE',
+                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.inkLight, letterSpacing: 0.5),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'REQ-${widget.requisitionId.toString().padLeft(3, '0')}',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.ink, fontFamily: 'monospace', letterSpacing: 1),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         // Live Dual-Custody Handshake Progress Badge
         Container(
@@ -11797,8 +11827,8 @@ class _DynamicPickupQrWidgetState extends State<DynamicPickupQrWidget> {
         Center(
           child: Text(
             globalLanguage.choice(
-              'Iharap ang live QR code sa bodega counter para sa mabilisang verification nang walang PIN.',
-              'Present this live QR code at the warehouse counter for instant verification without PIN.',
+              'Iharap ang QR sa bodega. Kung hindi ma-scan, sabihin o i-type ang Reference Code sa itaas.',
+              'Present QR at warehouse. If unable to scan, provide the Reference Code above.',
             ),
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 11.5, color: AppColors.inkSoft, fontWeight: FontWeight.w500),
@@ -12374,6 +12404,7 @@ class _MyRequisitionsScreenState extends State<MyRequisitionsScreen> {
                 DynamicPickupQrWidget(
                   qrToken: qrToken,
                   userId: widget.user['id'],
+                  requisitionId: req['id'],
                 ),
                 const SizedBox(height: 14),
               ] else if (status == 'PENDING') ...[
