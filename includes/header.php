@@ -60,6 +60,7 @@ if (!function_exists('nav_icon')) {
             'all'        => '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
             'truck'      => '<rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle>',
             'locations'  => '<path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/>',
+            'mobile'     => '<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
         ];
         $path = $icons[$name] ?? $icons['all'];
         return '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $path . '</svg>';
@@ -135,6 +136,7 @@ if (!function_exists('nav_icon')) {
         <a href="<?= BASE_URL ?>/admin/users.php" class="<?= in_array($nav_script, ['users.php','user_add.php','user_edit.php']) ? 'active' : '' ?>"><?= nav_icon('users') ?><span>User Accounts</span></a>
         <a href="<?= BASE_URL ?>/admin/mcda_settings.php" class="<?= $nav_script === 'mcda_settings.php' ? 'active' : '' ?>"><?= nav_icon('inventory') ?><span>MCDA Algorithm</span></a>
         <a href="<?= BASE_URL ?>/admin/audit_logs.php" class="<?= in_array($nav_script, ['audit_logs.php','audit_logs_export.php']) ? 'active' : '' ?>"><?= nav_icon('audit') ?><span>Audit Logs</span></a>
+        <a href="<?= BASE_URL ?>/admin/app_release.php" class="<?= $nav_script === 'app_release.php' ? 'active' : '' ?>"><?= nav_icon('mobile') ?><span>Mobile App Release</span></a>
 
         <div class="nav-section-label">Inventory (Standing In)</div>
         <a href="<?= BASE_URL ?>/inventory/dashboard.php" class="<?= $nav_script === 'dashboard.php' && str_starts_with($_SERVER['SCRIPT_NAME'], BASE_URL . '/inventory/') ? 'active' : '' ?>">

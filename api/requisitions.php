@@ -47,6 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     if ($token_lookup !== '') {
+        if (strpos($token_lookup, '#') !== false) {
+            $token_lookup = explode('#', $token_lookup)[0];
+        }
         if (preg_match('/[?&]token=([^&]+)/', $token_lookup, $m)) {
             $token_lookup = urldecode($m[1]);
         }
@@ -68,13 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     } else {
         $tab = $_GET['tab'] ?? '';
         if ($tab === '') {
-            if ($role === 'field_supervisor') {
-                $tab = 'pending';
-            } elseif ($role === 'inventory_staff') {
-                $tab = 'approved';
-            } else {
-                $tab = 'my';
-            }
+            $tab = ($role === 'driver_helper') ? 'my' : 'all';
         }
 
         if ($role === 'driver_helper') {
@@ -97,15 +94,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             } elseif ($tab === 'all') {
                 $where = " ";
                 $params = [];
-            } else {
+            } elseif ($tab === 'my') {
                 $where = " WHERE r.requester_id = :uid ";
                 $params = ['uid' => $user_id];
+            } else {
+                $where = " ";
+                $params = [];
             }
         }
     }
 
     $stmt = $pdo->prepare("
-        SELECT r.*, t.plate_number, t.model AS truck_model,
+        SELECT r.*, t.plate_number, t.model AS truck_model, t.status AS truck_status,
                u.full_name AS requester_name, u.employee_id, u.position AS requester_position,
                d.full_name AS decided_by_name, rel.full_name AS released_by_name
         FROM requisitions r
@@ -121,12 +121,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $requests = $stmt->fetchAll();
 
     if ($requests) {
-        // Compute dynamic multi-criteria priority scores
+        // Compute dynamic multi-criteria priority scores (MCDA)
         $pending_only = array_filter($requests, fn($r) => $r['status'] === 'pending');
         $scored = $pending_only ? score_pending_requisitions($pdo, array_values($pending_only)) : [];
-        $scores_by_id = [];
+        $scored_by_id = [];
         foreach ($scored as $s) {
-            $scores_by_id[$s['id']] = $s['score'] ?? 0;
+            $scored_by_id[$s['id']] = $s;
         }
 
         $ids = array_column($requests, 'id');
@@ -153,12 +153,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $items_by_req[$it['requisition_id']][] = $it;
         }
 
+        $is_privileged_role = in_array($role, ['field_supervisor', 'admin', 'inventory_staff'], true);
+
         foreach ($requests as &$req) {
-            $req['priority_score'] = isset($scores_by_id[$req['id']]) ? number_format($scores_by_id[$req['id']], 2) : '0.00';
+            if ($is_privileged_role) {
+                $sc = $scored_by_id[$req['id']] ?? null;
+                $req['priority_score'] = ($sc !== null && isset($sc['priority_score']))
+                    ? number_format((float)$sc['priority_score'], 2)
+                    : '0.00';
+                $req['priority_stock'] = (int)($sc['priority_stock'] ?? 0);
+                $req['priority_demand'] = (int)($sc['priority_demand'] ?? 0);
+                $req['priority_trust'] = (int)($sc['priority_trust'] ?? 0);
+                $req['mcda_details'] = $sc ? [
+                    'score'       => (float)($sc['priority_score'] ?? 0),
+                    'stock'       => (int)($sc['priority_stock'] ?? 0),
+                    'demand'      => (int)($sc['priority_demand'] ?? 0),
+                    'trust'       => (int)($sc['priority_trust'] ?? 0),
+                    'weights'     => $sc['mcda_weights'] ?? null,
+                ] : null;
+            } else {
+                // Strictly hidden from personnel / drivers: internal management decision tool only
+                $req['priority_score'] = null;
+                $req['priority_stock'] = null;
+                $req['priority_demand'] = null;
+                $req['priority_trust'] = null;
+                $req['mcda_details'] = null;
+            }
             $req['items'] = $items_by_req[$req['id']] ?? [];
-            $req['pickup_qr_url'] = BASE_URL . '/inventory/verify.php?token=' . urlencode($req['qr_token'] ?? '');
+            if (in_array($req['status'], ['approved', 'released'], true) && !empty($req['qr_token'])) {
+                $req['pickup_qr_url'] = BASE_URL . '/inventory/verify.php?token=' . urlencode($req['qr_token']);
+            } else {
+                $req['qr_token'] = null;
+                $req['pickup_qr_url'] = null;
+            }
         }
         unset($req);
+
+        // Sort pending requests by priority: urgent first, then highest score descending
+        if ($tab === 'pending') {
+            usort($requests, function ($a, $b) {
+                $a_urgent = !empty($a['manual_urgent']);
+                $b_urgent = !empty($b['manual_urgent']);
+                if ($a_urgent !== $b_urgent) {
+                    return $a_urgent ? -1 : 1;
+                }
+                $sa = (float)($a['priority_score'] ?? 0);
+                $sb = (float)($b['priority_score'] ?? 0);
+                if ($sb != $sa) {
+                    return ($sb > $sa) ? 1 : -1;
+                }
+                return strcmp($a['created_at'] ?? '', $b['created_at'] ?? '');
+            });
+        }
     }
 
     api_response(true, $requests);
@@ -377,10 +423,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Two-Way Driver Handshake Protocol (Non-Repudiation Custody Transfer)
+            $live_handshake = trim($input['live_handshake_token'] ?? $input['handshake_token'] ?? '');
             $driver_pin = trim($input['driver_pin'] ?? $input['pin'] ?? '');
             $override_reason = trim($input['override_reason'] ?? $input['driver_override_reason'] ?? '');
 
-            $req_user_stmt = $pdo->prepare('SELECT id, full_name, role, pin_hash, password_hash FROM users WHERE id = :uid');
+            $req_user_stmt = $pdo->prepare('SELECT id, full_name, role, pin_hash, pin_failed_attempts, pin_locked_until FROM users WHERE id = :uid');
             $req_user_stmt->execute(['uid' => $target['requester_id']]);
             $requester_user = $req_user_stmt->fetch();
 
@@ -388,30 +435,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $handshake_method = null;
             $handshake_note = null;
 
-            if ($driver_pin !== '') {
+            // Mode 1: Instant Live Rotating QR Code Handshake (Zero-Click, Frictionless & Anti-Screenshot)
+            if ($live_handshake !== '') {
+                $hp = explode(':', $live_handshake);
+                if (count($hp) === 2) {
+                    $slice = (int)$hp[0];
+                    $sig = $hp[1];
+                    $currentSlice = (int)floor(time() / 30);
+                    // Allow current slice +/- 2 (up to 90 seconds window for slight mobile/server clock drift)
+                    if (abs($currentSlice - $slice) <= 2) {
+                        $raw = $target['qr_token'] . ':' . $target['requester_id'] . ':' . $slice . ':duarte_pos_handshake';
+                        $expectedSig = substr(hash('sha256', $raw), 0, 12);
+                        if (hash_equals($expectedSig, $sig)) {
+                            $handshake_verified = true;
+                            $handshake_method = 'dynamic_qr_scan';
+                            $handshake_note = 'Verified in-person via live rotating QR code (slice ' . $slice . ')';
+                        }
+                    }
+                }
+            }
+
+            // Mode 2: Clean 4-Digit Driver PIN Verification (Offline/Fallback)
+            if (!$handshake_verified && $driver_pin !== '') {
+                // Check Lockout
+                if (!empty($requester_user['pin_locked_until'])) {
+                    $lockTime = strtotime($requester_user['pin_locked_until']);
+                    if ($lockTime > time()) {
+                        $mins = max(1, (int)ceil(($lockTime - time()) / 60));
+                        $pdo->rollBack();
+                        api_response(false, null, "Naka-lock ang Driver PIN ng $mins minuto dahil sa sunod-sunod na maling subok. Gamitin ang Supervisor Override Note.", 429);
+                    }
+                }
+
                 if (!empty($requester_user['pin_hash']) && password_verify($driver_pin, $requester_user['pin_hash'])) {
                     $handshake_verified = true;
                     $handshake_method = 'driver_pin';
-                } elseif (empty($requester_user['pin_hash']) && in_array($driver_pin, ['1111', '0000', '1234'])) {
-                    $handshake_verified = true;
-                    $handshake_method = 'driver_pin_default';
-                    // Auto-initialize PIN for driver
-                    $pdo->prepare('UPDATE users SET pin_hash = :h, pin_set_at = NOW() WHERE id = :id')
-                        ->execute(['h' => password_hash($driver_pin, PASSWORD_BCRYPT), 'id' => $requester_user['id']]);
-                } elseif (!empty($requester_user['password_hash']) && password_verify($driver_pin, $requester_user['password_hash'])) {
-                    $handshake_verified = true;
-                    $handshake_method = 'driver_password';
+                    // Reset failed counter
+                    $pdo->prepare('UPDATE users SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = :id')
+                        ->execute(['id' => $requester_user['id']]);
                 } else {
+                    $newFails = (int)($requester_user['pin_failed_attempts'] ?? 0) + 1;
+                    $lockSql = ($newFails >= 5) ? ', pin_locked_until = DATE_ADD(NOW(), INTERVAL 5 MINUTE)' : '';
+                    $pdo->prepare("UPDATE users SET pin_failed_attempts = :f $lockSql WHERE id = :id")
+                        ->execute(['f' => $newFails, 'id' => $requester_user['id']]);
                     $pdo->rollBack();
-                    api_response(false, null, 'Maling Driver PIN o Password. Kailangang ilagay ng Driver ang kanyang tamang 4-digit PIN upang kumpirmahin ang pagtanggap ng gamit.', 401);
+                    $rem = max(0, 5 - $newFails);
+                    api_response(false, null, "Maling Driver PIN. " . ($rem > 0 ? "May natitirang $rem subok bago ma-lock." : "Naka-lock ang PIN ng 5 minuto. Gamitin ang Supervisor Override."), 401);
                 }
-            } elseif ($override_reason !== '') {
+            }
+
+            // Mode 3: Supervisor / Authorized Override
+            if (!$handshake_verified && $override_reason !== '') {
                 $handshake_verified = true;
                 $handshake_method = 'supervisor_override';
                 $handshake_note = $override_reason;
-            } else {
+            }
+
+            if (!$handshake_verified) {
                 $pdo->rollBack();
-                api_response(false, null, 'Kailangan ang 4-Digit PIN ng Driver o Authorized Override Reason upang kumpirmahin ang pisikal na pagtanggap ng kagamitan (Dual-Custody Handshake).', 422);
+                api_response(false, null, 'Kailangan i-scan ang Live QR ng Driver o maglagay ng 4-Digit Driver PIN / Supervisor Override bago i-release ang mga gamit.', 422);
             }
 
             // Fleet vehicle check & dispatch
@@ -790,7 +872,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $pdo->beginTransaction();
     try {
-        $qr_token = generate_unique_qr_token($pdo);
         $urgent_reason = $is_urgent ? ($purpose ?: 'Urgent request filed from mobile application') : null;
         $urgent_by = $is_urgent ? $user_id : null;
         $urgent_at = $is_urgent ? date('Y-m-d H:i:s') : null;
@@ -799,7 +880,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             INSERT INTO requisitions 
                 (requester_id, truck_id, truck_plate_snapshot, is_maintenance_request, purpose, manual_urgent, 
                  manual_urgent_reason, manual_urgent_by, manual_urgent_at, qr_token, status)
-            VALUES (:uid, :tid, :plate, :is_maint, :purpose, :urgent, :urgent_reason, :urgent_by, :urgent_at, :token, 'pending')
+            VALUES (:uid, :tid, :plate, :is_maint, :purpose, :urgent, :urgent_reason, :urgent_by, :urgent_at, NULL, 'pending')
         ");
         $stmt->execute([
             'uid'           => $user_id,
@@ -811,7 +892,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'urgent_reason' => $urgent_reason,
             'urgent_by'     => $urgent_by,
             'urgent_at'     => $urgent_at,
-            'token'         => $qr_token
         ]);
         $req_id = (int)$pdo->lastInsertId();
 
@@ -871,7 +951,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         api_response(true, [
             'requisition_id' => $req_id,
-            'qr_token'       => $qr_token,
+            'qr_token'       => null,
             'status'         => 'pending',
             'message'        => 'Requisition successfully submitted and queued for approval.'
         ]);

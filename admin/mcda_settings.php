@@ -12,7 +12,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/audit.php';
 require_once __DIR__ . '/../includes/priority.php';
 
-require_role(['admin', 'field_supervisor']);
+require_role(['admin']);
 
 $pdo = get_db();
 $user = current_user();
@@ -21,23 +21,23 @@ $page_title = 'MCDA Algorithm Settings';
 $presets = [
     'standard' => [
         'name'        => 'Standard Logistics (Default)',
-        'description' => 'Balanced day-to-day allocation.',
+        'description' => 'Balanseng pamamahagi ng stock at kagamitan sa araw-araw.',
         'scarcity'    => 0.45,
         'contention'  => 0.35,
         'reliability' => 0.20,
         'icon'        => '⚖️',
     ],
     'crisis_rush' => [
-        'name'        => 'High-Demand / Crisis Response',
-        'description' => 'Faster fulfillment in emergencies.',
+        'name'        => 'High-Demand / Rush Operations',
+        'description' => 'Inuuna ang mga agarang biyahe at emergency repairs.',
         'scarcity'    => 0.60,
         'contention'  => 0.30,
         'reliability' => 0.10,
         'icon'        => '🚨',
     ],
     'asset_protection' => [
-        'name'        => 'Asset Protection & Accountability',
-        'description' => 'Prioritizes reliable borrowers.',
+        'name'        => 'Asset Protection & Tool Custody',
+        'description' => 'Mas mataas ang puntos sa mga tauhang laging maayos magsauli.',
         'scarcity'    => 0.30,
         'contention'  => 0.30,
         'reliability' => 0.40,

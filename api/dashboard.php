@@ -146,8 +146,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
              WHERE r.requester_id = :uid 
              ORDER BY r.created_at DESC LIMIT 5"
         );
-        $recent_requests->execute(['uid' => $user_id]);
-        $recent_requests_list = $recent_requests->fetchAll(PDO::FETCH_ASSOC);
+        $recent_requests_list = array_map(function($r) {
+            if (!in_array($r['status'] ?? '', ['approved', 'released'], true)) {
+                $r['qr_token'] = null;
+            }
+            return $r;
+        }, $recent_requests->fetchAll(PDO::FETCH_ASSOC));
 
         $total_reqs = $pdo->prepare("SELECT COUNT(*) c FROM requisitions WHERE requester_id = :uid");
         $total_reqs->execute(['uid' => $user_id]);

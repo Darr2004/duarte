@@ -404,7 +404,7 @@ require __DIR__ . '/../includes/header.php';
         <input type="checkbox" id="generate_qr" name="generate_qr" value="1" <?= $values['generate_qr'] ? 'checked' : '' ?>>
         Generate QR tag(s) now
       </label>
-      <span id="generateQrHint" style="font-size:0.8rem; color:var(--ink-soft);">Auto-generates QR per unit.</span>
+      <span id="generateQrHint" style="font-size:0.8rem; color:var(--ink-soft);">Gagawa ng QR tag bawat yunit.</span>
     </div>
 
     <div class="form-divider"></div>
@@ -452,8 +452,8 @@ require __DIR__ . '/../includes/header.php';
       var hasVariants = variantToggle && variantToggle.checked;
       qrCheckbox.disabled = false;
       qrHint.textContent = hasVariants
-        ? 'Auto-generates QR per variant.'
-        : 'Auto-generates QR per unit.';
+        ? 'Gagawa ng QR tag bawat variant.'
+        : 'Gagawa ng QR tag bawat yunit.';
       if (!qrTouchedByUser) {
         var opt = categorySelect.options[categorySelect.selectedIndex];
         var mode = opt ? opt.dataset.borrowMode : null;

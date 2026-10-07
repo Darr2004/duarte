@@ -50,11 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($user) {
                     if ($is_admin_portal && $user['role'] !== 'admin') {
                         // Non-admin trying to use the Root Console
+                        $_SESSION = [];
+                        if (session_status() === PHP_SESSION_ACTIVE) {
+                            session_destroy();
+                        }
                         $error = 'Access Denied: Only system administrators are authorized to log in via the Root Console.';
                         $show_admin_modal = true;
-                    } elseif (!$is_admin_portal && $user['role'] === 'admin') {
-                        // Admin trying to use the normal form — block and hint
-                        $error = 'This account requires elevated authentication. Standard sign-in is not available for this credential.';
                     } else {
                         header('Location: ' . BASE_URL . landing_page_for($user['role']));
                         exit;

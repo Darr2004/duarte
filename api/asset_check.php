@@ -74,7 +74,8 @@ function fetch_asset_detail(PDO $pdo, string $tag, int $id, string $protocol, st
                s.name AS stall_name, s.stall_number, sl.layer_name,
                iv.variant_value, iv.variant_note,
                COALESCE(iv.image_filename, i.image_filename) AS image_filename,
-               h.full_name AS holder_name, h.employee_id AS holder_employee_id, h.email AS holder_email
+               h.full_name AS holder_name, h.employee_id AS holder_employee_id, h.email AS holder_email,
+               tr.plate_number AS assigned_truck_plate, tr.model AS assigned_truck_model, tr.status AS assigned_truck_status
         FROM assets a
         JOIN items i ON i.id = a.item_id
         LEFT JOIN categories c ON c.id = i.category_id
@@ -82,6 +83,7 @@ function fetch_asset_detail(PDO $pdo, string $tag, int $id, string $protocol, st
         LEFT JOIN stalls s ON s.id = sl.stall_id
         LEFT JOIN item_variants iv ON iv.id = a.item_variant_id
         LEFT JOIN users h ON h.id = a.current_holder_id
+        LEFT JOIN trucks tr ON tr.id = a.assigned_truck_id
     ";
 
     if ($id > 0) {
@@ -118,29 +120,35 @@ function fetch_asset_detail(PDO $pdo, string $tag, int $id, string $protocol, st
     // Health status mapping for quick UI indicators
     $status = $asset['status'];
     $health_status = 'ok';
-    $health_title = 'In Good Condition';
-    $health_desc = 'Available for loan and yard operations.';
+    $health_title = 'Maayos ang Kondisyon';
+    $health_desc = !empty($asset['condition_note'])
+        ? $asset['condition_note']
+        : 'Handang gamitin sa operasyon o hiramin sa bodega.';
 
-    if ($status === 'under_maintenance') {
+    if (!empty($asset['assigned_truck_id']) && $status === 'available') {
+        $health_status = 'onboard_truck';
+        $health_title = 'Gamit ng Truck (' . $asset['assigned_truck_plate'] . ')';
+        $health_desc = 'Nakatalagang gamit sa truck ' . $asset['assigned_truck_plate'] . '. Hindi nag-eexpire at hindi kailangang i-extend.';
+    } elseif ($status === 'under_maintenance') {
         $health_status = 'maintenance';
-        $health_title = 'Under Maintenance';
+        $health_title = 'Kasalukuyang Kinukumpuni';
         $health_desc = !empty($asset['condition_note'])
             ? $asset['condition_note']
-            : 'Flagged for inspection and repair.';
+            : 'Kailangang suriin o kumpunihin bago magamit muli.';
     } elseif ($status === 'checked_out') {
         $health_status = 'checked_out';
-        $health_title = 'Currently Checked Out';
+        $health_title = 'Kasalukuyang Hiniram';
         $health_desc = !empty($asset['holder_name'])
-            ? 'In possession of ' . $asset['holder_name']
-            : 'Currently on active loan.';
+            ? 'Hawak ni ' . $asset['holder_name']
+            : 'Kasalukuyang ginagamit sa labas.';
     } elseif ($status === 'missing') {
         $health_status = 'missing';
-        $health_title = 'Missing';
-        $health_desc = 'Not confirmed present during physical audit.';
+        $health_title = 'Nawawala sa Imbentaryo';
+        $health_desc = 'Hindi natagpuan sa pisikal na inspeksyon sa bodega.';
     } elseif ($status === 'retired') {
         $health_status = 'retired';
-        $health_title = 'Retired';
-        $health_desc = 'Decommissioned from active inventory.';
+        $health_title = 'Inalis na sa Imbentaryo';
+        $health_desc = 'Tuluyang inalis na sa aktibong listahan ng mga gamit.';
     }
 
     // Active loan details if checked out
@@ -184,11 +192,18 @@ function fetch_asset_detail(PDO $pdo, string $tag, int $id, string $protocol, st
         ");
         $ev_stmt->execute(['aid' => $asset_id]);
         while ($ev = $ev_stmt->fetch()) {
+            $rawNote = $ev['note'] ?? '';
+            // Sanitize any robotic/AI developer phrases into natural phrasing
+            $cleanNote = preg_replace('/^Auto-synced from Catalog Management as lot of\s+(\d+)\s+/i', 'Nairehistro sa imbentaryo mula sa Katalogo (Batch: $1 ', $rawNote);
+            $cleanNote = preg_replace('/^Auto-synced from Catalog Management:\s*/i', 'Nairehistro sa imbentaryo mula sa Katalogo: ', $cleanNote);
+            $cleanNote = preg_replace('/^Auto-expired/i', 'Nag-expire', $cleanNote);
+            $cleanNote = preg_replace('/^Auto-approved/i', 'Naaprubahan', $cleanNote);
+
             $events[] = [
                 'id'         => (int)$ev['id'],
                 'event_type' => $ev['event_type'],
                 'actor_name' => $ev['actor_name_snapshot'] ?? 'Staff',
-                'note'       => $ev['note'] ?? '',
+                'note'       => $cleanNote,
                 'created_at' => date('M j, Y g:i A', strtotime($ev['created_at'])),
             ];
         }
@@ -209,6 +224,13 @@ function fetch_asset_detail(PDO $pdo, string $tag, int $id, string $protocol, st
             'location_note'  => $asset['location_note'] ?? '',
             'location'       => $location,
             'quantity'       => (int)$asset['quantity'],
+            'is_onboard_truck' => !empty($asset['assigned_truck_id']),
+            'assigned_truck' => !empty($asset['assigned_truck_id']) ? [
+                'id'           => (int)$asset['assigned_truck_id'],
+                'plate_number' => $asset['assigned_truck_plate'],
+                'model'        => $asset['assigned_truck_model'],
+                'status'       => $asset['assigned_truck_status'],
+            ] : null,
             'created_at'     => date('M j, Y', strtotime($asset['created_at'])),
             'updated_at'     => !empty($asset['updated_at']) ? date('M j, Y g:i A', strtotime($asset['updated_at'])) : null,
         ],

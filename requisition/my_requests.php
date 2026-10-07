@@ -83,7 +83,7 @@ require __DIR__ . '/../includes/header.php';
       <?php else: foreach ($requests as $r):
         $is_auto_expired = $r['status'] === 'cancelled'
             && $r['decision_note']
-            && str_starts_with($r['decision_note'], 'Auto-expired');
+            && (str_starts_with($r['decision_note'], 'Nag-expire') || str_starts_with($r['decision_note'], 'Auto-expired'));
 
         // Mirrors requisition/view.php's $is_auto_approved: an office
         // staff requisition that the system approved on submission
@@ -261,7 +261,7 @@ require __DIR__ . '/../includes/header.php';
       if (data.isAutoExpired) {
         decidedField.classList.remove('hidden');
         decidedLabelEl.textContent = 'Decided by';
-        decidedEl.textContent = 'Auto-cancelled by system — ' + data.decidedAt;
+        decidedEl.textContent = 'Nag-expire sa sistema — ' + data.decidedAt;
       } else if (data.isAutoApproved) {
         decidedField.classList.remove('hidden');
         decidedLabelEl.textContent = 'Approved by';

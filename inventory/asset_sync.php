@@ -101,7 +101,7 @@ function sync_catalog_to_assets(PDO $pdo, array $user): array
                             'by'         => $user['id'],
                         ]);
                         $asset_id = (int)$pdo->lastInsertId();
-                        record_asset_event($pdo, $asset_id, 'registered', $user, 'Auto-synced from Catalog Management: ' . $item['name'] . $line['label'] . '.');
+                        record_asset_event($pdo, $asset_id, 'registered', $user, 'Nairehistro sa imbentaryo mula sa Katalogo: ' . $item['name'] . $line['label'] . '.');
                         $created_tags[] = $tag;
                         $created_count++;
                         $item_created++;
@@ -122,7 +122,7 @@ function sync_catalog_to_assets(PDO $pdo, array $user): array
                         'by'         => $user['id'],
                     ]);
                     $asset_id = (int)$pdo->lastInsertId();
-                    record_asset_event($pdo, $asset_id, 'registered', $user, 'Auto-synced from Catalog Management as lot of ' . $line['qty'] . ' ' . $item['name'] . $line['label'] . '.');
+                    record_asset_event($pdo, $asset_id, 'registered', $user, 'Nairehistro sa imbentaryo mula sa Katalogo (Batch: ' . $line['qty'] . ' ' . $item['name'] . $line['label'] . ').');
                     $created_tags[] = $tag;
                     $created_count++;
                     $item_created++;
@@ -136,7 +136,7 @@ function sync_catalog_to_assets(PDO $pdo, array $user): array
 
         if ($created_count > 0) {
             log_audit_event($pdo, $user, 'asset_sync', 'assets', null,
-                $user['full_name'] . ' auto-synced ' . $created_count . ' QR asset tag(s) across ' . $item_count . ' catalog item(s).');
+                $user['full_name'] . ' nagrehistro ng ' . $created_count . ' QR asset tag(s) sa ' . $item_count . ' gamit sa katalogo.');
         }
 
         $pdo->commit();

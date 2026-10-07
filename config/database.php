@@ -20,15 +20,16 @@ function get_db(): PDO
             PDO::ATTR_EMULATE_PREPARES   => false,
         ];
 
-        // Enable SSL for cloud MySQL providers (TiDB Cloud / Aiven)
-        if (defined('PDO::MYSQL_ATTR_SSL_CA')) {
+        // Enable SSL for cloud MySQL providers (TiDB Cloud / Aiven) when not on localhost
+        $is_local_db = in_array(strtolower(DB_HOST), ['localhost', '127.0.0.1', '::1']);
+        if (!$is_local_db && defined('PDO::MYSQL_ATTR_SSL_CA')) {
             if (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
                 $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/ssl/certs/ca-certificates.crt';
             } elseif (file_exists('C:\\xampp\\apache\\bin\\curl-ca-bundle.crt')) {
                 $options[PDO::MYSQL_ATTR_SSL_CA] = 'C:\\xampp\\apache\\bin\\curl-ca-bundle.crt';
             }
         }
-        if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
+        if (!$is_local_db && defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
             $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
         }
 

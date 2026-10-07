@@ -230,8 +230,8 @@ img.avatar-circle { object-fit: cover; background: var(--line); }
     color: #fff;
   }
 
-  /* Keep reasonable space on non-hero pages so page headers don't touch topbar */
-  .main:not(.has-hero) { padding-top: 5rem; }
+  /* Ensure all desktop pages (with or without hero) have clean clearance so content & hero banners never collide with the fixed topbar */
+  .main { padding-top: 4.85rem; }
 
   /* Bottom tab bar is mobile-only chrome; modals.css turns it on inside
      its own max-width:720px block, so explicitly hide it above that

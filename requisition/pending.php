@@ -9,9 +9,11 @@ $pdo = get_db();
 
 $stmt = $pdo->query(
     "SELECT r.*, u.full_name AS requester_name, u.employee_id, u.position AS requester_position,
+        t.status AS truck_status, t.model AS truck_model,
         (SELECT COUNT(*) FROM requisition_items ri WHERE ri.requisition_id = r.id) AS item_count
      FROM requisitions r
      JOIN users u ON u.id = r.requester_id
+     LEFT JOIN trucks t ON t.id = r.truck_id
      WHERE r.status = 'pending'
      ORDER BY r.created_at ASC"
 );
@@ -39,11 +41,11 @@ require __DIR__ . '/../includes/header.php';
   <a href="?sort=oldest" role="tab" aria-selected="<?= $sort === 'oldest' ? 'true' : 'false' ?>" class="range-tab <?= $sort === 'oldest' ? 'active' : '' ?>">Oldest first</a>
 </div>
 <?php if ($sort === 'priority'): ?>
-<div class="filter-bar-note">Highest urgency first.</div>
+<div class="filter-bar-note">Inuuna ang may pinakamataas na pangangailangan at may sapat na stock.</div>
 <div class="priority-legend">
-  <span class="priority-legend-item"><span class="priority-legend-dot seg-scarcity"></span>Stock (Low)</span>
-  <span class="priority-legend-item"><span class="priority-legend-dot seg-contention"></span>Demand (Others want it)</span>
-  <span class="priority-legend-item"><span class="priority-legend-dot seg-reliability"></span>Trust (Return record)</span>
+  <span class="priority-legend-item"><span class="priority-legend-dot seg-scarcity"></span>📦 Kritikal na Stock (45%)</span>
+  <span class="priority-legend-item"><span class="priority-legend-dot seg-contention"></span>🚨 Demand ng Biyahe (35%)</span>
+  <span class="priority-legend-item"><span class="priority-legend-dot seg-reliability"></span>🤝 Rekord sa Pagsasauli (20%)</span>
 </div>
 <?php endif; ?>
 
@@ -97,10 +99,31 @@ require __DIR__ . '/../includes/header.php';
           <td class="mono td-detail" data-label="Submitted"><?= htmlspecialchars((string)($r['created_at'] ?? '')) ?></td>
           <td data-label="Items" class="td-detail"><?= (int)$r['item_count'] ?> item(s)</td>
           <td data-label="Purpose">
-            <?php if (!empty($r['truck_plate_snapshot'])): ?>
-              <span style="margin-right:0.4rem;"><?= truck_plate_badge($r['truck_plate_snapshot']) ?></span>
-            <?php endif; ?>
-            <?= htmlspecialchars($r['purpose'] ?? '—') ?>
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.35rem; margin-bottom:0.25rem;">
+              <?php if (!empty($r['truck_plate_snapshot'])): ?>
+                <?= truck_plate_badge($r['truck_plate_snapshot']) ?>
+              <?php endif; ?>
+              <?php if (!empty($r['is_maintenance_request'])): ?>
+                <span class="badge" style="background:var(--blue-tint); color:var(--blue-info); border:1px solid var(--blue-border); font-size:0.75rem; font-weight:600;" title="Requisition para sa pyesa o pagkukumpuni ng sasakyan">
+                  🔧 Pyesa / Repair
+                </span>
+                <?php if (($r['truck_status'] ?? '') === 'available'): ?>
+                  <span class="badge is-warn" style="font-size:0.72rem;" title="Available pa ang truck sa fleet monitor. Maaaring kailangang itakda as Under Maintenance kapag naaprubahan.">
+                    ⚠️ Truck Available
+                  </span>
+                <?php endif; ?>
+              <?php elseif (!empty($r['truck_id'])): ?>
+                <span class="badge" style="background:var(--surface-subtle); color:var(--ink-soft); border:1px solid var(--line); font-size:0.75rem; font-weight:500;" title="Requisition para sa mga gamit at gamit-byahe ng crew">
+                  🚛 Gamit sa Byahe
+                </span>
+                <?php if (($r['truck_status'] ?? '') === 'under_maintenance'): ?>
+                  <span class="badge" style="background:var(--red-tint); color:var(--red-danger); border:1px solid var(--red-border); font-size:0.72rem; font-weight:700;" title="Hindi maaaring i-approve para sa byahe dahil nasa repair pa ang truck!">
+                    ⛔ Truck In Repair
+                  </span>
+                <?php endif; ?>
+              <?php endif; ?>
+            </div>
+            <div><?= htmlspecialchars($r['purpose'] ?? '—') ?></div>
           </td>
           <td data-label="" class="td-detail" style="text-align:right;"><a href="<?= BASE_URL ?>/requisition/view.php?id=<?= $r['id'] ?>" class="table-action-btn btn-action-view" title="Review Requisition" aria-label="Review" style="background:var(--amber); color:#fff; border-color:var(--amber);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></a></td>
         </tr>
@@ -142,7 +165,7 @@ require __DIR__ . '/../includes/header.php';
           <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.3rem;">
             <span style="font-weight:700; font-size:0.86rem; color:var(--ink); display:flex; align-items:center; gap:0.4rem;">
               <span style="width:8px; height:8px; border-radius:50%; background:var(--red-danger); display:inline-block;"></span>
-              1. Stock Scarcity (45%)
+              1. 📦 Kritikal na Stock sa Bodega (45%)
             </span>
             <span class="mono" style="font-weight:700; font-size:0.86rem; color:var(--ink);" id="pmStockVal">0%</span>
           </div>
@@ -150,7 +173,7 @@ require __DIR__ . '/../includes/header.php';
             <div id="pmStockBar" style="height:100%; background:var(--red-danger); width:0%; transition:width 0.4s ease;"></div>
           </div>
           <div style="font-size:0.75rem; color:var(--ink-soft);">
-            Stock vs buffer level.
+            Gaano kakonti ang natitirang stock sa bodega (inuuna ang mas delikadong maubusan).
           </div>
         </div>
 
@@ -158,7 +181,7 @@ require __DIR__ . '/../includes/header.php';
           <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.3rem;">
             <span style="font-weight:700; font-size:0.86rem; color:var(--ink); display:flex; align-items:center; gap:0.4rem;">
               <span style="width:8px; height:8px; border-radius:50%; background:var(--amber); display:inline-block;"></span>
-              2. Demand Contention (35%)
+              2. 🚨 Demand at Urgency ng Biyahe (35%)
             </span>
             <span class="mono" style="font-weight:700; font-size:0.86rem; color:var(--ink);" id="pmDemandVal">0%</span>
           </div>
@@ -166,7 +189,7 @@ require __DIR__ . '/../includes/header.php';
             <div id="pmDemandBar" style="height:100%; background:var(--amber); width:0%; transition:width 0.4s ease;"></div>
           </div>
           <div style="font-size:0.75rem; color:var(--ink-soft);">
-            Competing requests, same item.
+            Ilan ang sabay-sabay na nangangailangan ng kagamitang ito para sa operasyon ng kumpanya.
           </div>
         </div>
 
@@ -174,7 +197,7 @@ require __DIR__ . '/../includes/header.php';
           <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.3rem;">
             <span style="font-weight:700; font-size:0.86rem; color:var(--ink); display:flex; align-items:center; gap:0.4rem;">
               <span style="width:8px; height:8px; border-radius:50%; background:var(--green-ok); display:inline-block;"></span>
-              3. Borrower Reliability (20%)
+              3. 🤝 Rekord sa Pagsasauli ng Kagamitan (20%)
             </span>
             <span class="mono" style="font-weight:700; font-size:0.86rem; color:var(--ink);" id="pmTrustVal">0%</span>
           </div>
@@ -182,7 +205,7 @@ require __DIR__ . '/../includes/header.php';
             <div id="pmTrustBar" style="height:100%; background:var(--green-ok); width:0%; transition:width 0.4s ease;"></div>
           </div>
           <div style="font-size:0.75rem; color:var(--ink-soft);">
-            Past return record.
+            Tiwala at kasaysayan ng driver/crew sa pagbabalik ng hiniram na kagamitan sa takdang oras.
           </div>
         </div>
       </div>

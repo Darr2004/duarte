@@ -18,12 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
     $tab = $_GET['tab'] ?? '';
-    if (in_array($role, ['inventory_staff', 'admin']) && $tab !== 'my') {
-        $where = " WHERE tl.returned_at IS NULL ";
+    if (in_array($role, ['inventory_staff', 'admin', 'field_supervisor'], true) && $tab !== 'my') {
+        $where = " WHERE 1=1 ";
         if ($tab === 'extensions') {
             $where .= " AND tl.extension_status = 'pending' ";
         } elseif ($tab === 'overdue') {
-            $where .= " AND tl.due_date < CURDATE() ";
+            $where .= " AND tl.returned_at IS NULL AND tl.due_date < CURDATE() ";
+        } elseif ($tab === 'history') {
+            $where .= " AND tl.returned_at IS NOT NULL ";
+        } else {
+            // 'all', 'active', or default: active unreturned loans
+            $where .= " AND tl.returned_at IS NULL ";
         }
         $params = [];
     } else {

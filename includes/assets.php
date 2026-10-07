@@ -248,7 +248,7 @@ function asset_event_label(string $event_type): string
  */
 function get_available_assets_for_item(PDO $pdo, int $item_id, ?int $variant_id = null): array
 {
-    $sql = "SELECT * FROM assets WHERE item_id = :item_id AND status = 'available'";
+    $sql = "SELECT * FROM assets WHERE item_id = :item_id AND status = 'available' AND assigned_truck_id IS NULL";
     $params = ['item_id' => $item_id];
     if ($variant_id !== null) {
         $sql .= ' AND item_variant_id = :variant_id';
@@ -423,3 +423,139 @@ function record_asset_consumption(
         record_asset_event($pdo, $asset_id, 'retired', $actor, 'Lot fully used.', $reference_type, $reference_id);
     }
 }
+
+/**
+ * Returns all physical assets permanently assigned to a truck as its onboard equipment kit.
+ *
+ * @param PDO $pdo
+ * @param int $truck_id
+ * @return array
+ */
+function get_truck_onboard_assets(PDO $pdo, int $truck_id): array
+{
+    $stmt = $pdo->prepare("
+        SELECT a.*,
+               i.name AS item_name,
+               i.item_code,
+               i.borrow_mode,
+               iv.variant_value
+        FROM assets a
+        JOIN items i ON i.id = a.item_id
+        LEFT JOIN item_variants iv ON iv.id = a.item_variant_id
+        WHERE a.assigned_truck_id = :tid
+        ORDER BY i.name ASC, a.created_at ASC
+    ");
+    $stmt->execute(['tid' => $truck_id]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Permanently assigns an asset to a truck's onboard kit (Kit ng Sasakyan).
+ * This tool stays with the vehicle and does NOT expire or trigger loan overdue alerts.
+ */
+function assign_asset_to_truck(
+    PDO $pdo,
+    int $asset_id,
+    int $truck_id,
+    ?array $actor = null,
+    ?string $note = null
+): void {
+    $t_stmt = $pdo->prepare("SELECT plate_number, model FROM trucks WHERE id = :id");
+    $t_stmt->execute(['id' => $truck_id]);
+    $truck = $t_stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$truck) {
+        throw new InvalidArgumentException("Truck #$truck_id not found.");
+    }
+
+    $a_stmt = $pdo->prepare("
+        SELECT a.*, i.name AS item_name 
+        FROM assets a 
+        JOIN items i ON i.id = a.item_id 
+        WHERE a.id = :id
+    ");
+    $a_stmt->execute(['id' => $asset_id]);
+    $asset = $a_stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$asset) {
+        throw new InvalidArgumentException("Asset #$asset_id not found.");
+    }
+    if ($asset['status'] === 'retired' || $asset['status'] === 'checked_out') {
+        throw new RuntimeException("Asset {$asset['asset_tag']} cannot be assigned while {$asset['status']}.");
+    }
+
+    $loc = "Onboard: " . $truck['plate_number'];
+    $upd = $pdo->prepare("
+        UPDATE assets 
+        SET assigned_truck_id = :tid,
+            assigned_to_truck_at = NOW(),
+            location_note = :loc,
+            status = 'available'
+        WHERE id = :id
+    ");
+    $upd->execute([
+        'tid' => $truck_id,
+        'loc' => $loc,
+        'id'  => $asset_id,
+    ]);
+
+    $audit_note = "Assigned to {$truck['plate_number']} ({$truck['model']}) as permanent onboard kit.";
+    if ($note) {
+        $audit_note .= " " . $note;
+    }
+
+    record_asset_event(
+        $pdo,
+        $asset_id,
+        'assigned_to_truck',
+        $actor,
+        $audit_note,
+        'truck',
+        $truck_id
+    );
+}
+
+/**
+ * Unassigns an asset from a truck back to warehouse stock.
+ */
+function unassign_asset_from_truck(
+    PDO $pdo,
+    int $asset_id,
+    ?array $actor = null,
+    ?string $note = null
+): void {
+    $a_stmt = $pdo->prepare("
+        SELECT a.*, t.plate_number 
+        FROM assets a 
+        LEFT JOIN trucks t ON t.id = a.assigned_truck_id 
+        WHERE a.id = :id
+    ");
+    $a_stmt->execute(['id' => $asset_id]);
+    $asset = $a_stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$asset) {
+        throw new InvalidArgumentException("Asset #$asset_id not found.");
+    }
+
+    $old_plate = $asset['plate_number'] ?? 'truck';
+
+    $upd = $pdo->prepare("
+        UPDATE assets 
+        SET assigned_truck_id = NULL,
+            assigned_to_truck_at = NULL,
+            location_note = 'Warehouse Tool Room'
+        WHERE id = :id
+    ");
+    $upd->execute(['id' => $asset_id]);
+
+    $audit_note = "Unassigned from {$old_plate}. Returned to warehouse stock.";
+    if ($note) {
+        $audit_note .= " " . $note;
+    }
+
+    record_asset_event(
+        $pdo,
+        $asset_id,
+        'unassigned_from_truck',
+        $actor,
+        $audit_note
+    );
+}
+

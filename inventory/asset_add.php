@@ -339,7 +339,7 @@ require __DIR__ . '/../includes/header.php';
       <div class="form-group" id="serial_prefix_group">
         <label for="serial_prefix">Serial number prefix <span style="font-weight:400; color:var(--ink-soft);">(optional)</span></label>
         <input type="text" id="serial_prefix" name="serial_prefix" value="<?= htmlspecialchars((string)($values['serial_prefix'] ?? '')) ?>" placeholder="e.g. HMR">
-        <span style="font-size:0.8rem; color:var(--ink-soft);">Units auto-numbered (e.g. HMR-1).</span>
+        <span style="font-size:0.8rem; color:var(--ink-soft);">Sunod-sunod ang numero ng bawat yunit (hal. HMR-1, HMR-2).</span>
       </div>
       <div class="form-group">
         <label for="acquired_at">Date acquired</label>

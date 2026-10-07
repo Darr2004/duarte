@@ -363,7 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
 // against that leftover data instead of just trusting the fresh code path.
 $is_auto_expired = $req['status'] === 'cancelled'
     && $req['decision_note']
-    && str_starts_with($req['decision_note'], 'Auto-expired');
+    && (str_starts_with($req['decision_note'], 'Nag-expire') || str_starts_with($req['decision_note'], 'Auto-expired'));
 
 
 $items = $pdo->prepare('SELECT * FROM requisition_items WHERE requisition_id = :id');
@@ -474,12 +474,12 @@ if (!empty($req['truck_id']) && in_array($req['status'], ['pending', 'approved']
     <?php if ($is_auto_expired): ?>
     <div>
       <div class="eyebrow meta-mono">Decided by</div>
-      <div class="text-muted">System auto-cancelled — <span class="mono"><?= htmlspecialchars($req['decided_at'] ?? '') ?></span></div>
+      <div class="text-muted">Nag-expire (Sistema) — <span class="mono"><?= htmlspecialchars($req['decided_at'] ?? '') ?></span></div>
     </div>
     <?php elseif ($is_auto_approved): ?>
     <div>
       <div class="eyebrow meta-mono">Approved by</div>
-      <div class="text-muted">Auto-approved <span class="mono"><?= htmlspecialchars($req['decided_at'] ?? '') ?></span></div>
+      <div class="text-muted">Aprubado ng Sistema — <span class="mono"><?= htmlspecialchars($req['decided_at'] ?? '') ?></span></div>
     </div>
     <?php elseif ($req['decided_by_name']): ?>
     <div>

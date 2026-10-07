@@ -120,10 +120,10 @@ require __DIR__ . '/../includes/header.php';
   </div>
   <div style="display:flex; gap:0.65rem; align-items:center; flex-wrap:wrap;">
     <?php if ($unsynced_count > 0): ?>
-      <form method="post" action="<?= BASE_URL ?>/inventory/asset_sync.php" onsubmit="return confirm('⚡ AUTO-SYNC FROM CATALOG\n\nGenerate QR asset tags for <?= $unsynced_count ?> catalog item(s) that are not yet tracked as assets?\n\nThis will automatically assign their current stalls and layers.');">
+      <form method="post" action="<?= BASE_URL ?>/inventory/asset_sync.php" onsubmit="return confirm('⚡ PAGREHISTRO MULA SA KATALOGO\n\nGagawan ng QR asset tags ang <?= $unsynced_count ?> gamit sa katalogo na hindi pa nakarehistro bilang asset.\n\nItatalaga rin ang kanilang kasalukuyang stalls at layers.');">
         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
         <button type="submit" class="btn btn-outline" style="display:inline-flex; align-items:center; gap:0.35rem; font-weight:600; border-color:var(--amber); color:var(--amber);">
-          ⚡ Auto-Sync from Catalog (<?= $unsynced_count ?>)
+          ⚡ I-rehistro mula sa Katalogo (<?= $unsynced_count ?>)
         </button>
       </form>
     <?php endif; ?>
@@ -133,7 +133,7 @@ require __DIR__ . '/../includes/header.php';
 
 <?php if (!empty($_GET['synced'])): ?>
   <div class="alert alert-success">
-    ✅ Successfully auto-synced <?= (int)$_GET['synced'] ?> QR asset tag(s) across <?= (int)($_GET['items'] ?? 0) ?> catalog item(s)! All items now have assigned stalls and QR tags.
+    ✅ Matagumpay na nairehistro ang <?= (int)$_GET['synced'] ?> QR asset tag(s) sa <?= (int)($_GET['items'] ?? 0) ?> gamit sa katalogo! Lahat ay may nakatalaga nang stall at QR tag.
   </div>
 <?php endif; ?>
 <?php if (!empty($_GET['registered'])): ?>

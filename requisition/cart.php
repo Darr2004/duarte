@@ -296,13 +296,34 @@ require __DIR__ . '/../includes/header.php';
             <?php endforeach; ?>
           </select>
 
-          <div id="maintReqGroup" style="margin-top:0.5rem; display:none;">
-            <label style="display:flex; align-items:flex-start; gap:0.4rem; font-weight:500;">
-              <input type="checkbox" id="is_maintenance_request" name="is_maintenance_request" value="1"
-                <?= !empty($_POST['is_maintenance_request']) ? 'checked' : '' ?> style="margin-top:0.2rem;">
-              <span>Truck maintenance request</span>
-            </label>
-            <div id="maintReqHint" class="text-muted" style="font-size:0.8rem; margin:0.25rem 0 0 1.4rem;"></div>
+          <div id="maintReqGroup" style="margin-top:0.85rem; padding:0.85rem; border-radius:8px; background:var(--surface-subtle); border:1px solid var(--line); display:none;">
+            <div style="font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-bottom:0.55rem;">
+              Uri ng Kahilingan para sa Sasakyan (Requisition Purpose)
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <label id="optTripLabel" style="display:flex; align-items:flex-start; gap:0.55rem; padding:0.55rem 0.7rem; border-radius:6px; border:1px solid var(--line); background:var(--surface); cursor:pointer;">
+                <input type="radio" name="is_maintenance_request" id="type_trip" value="0" <?= empty($_POST['is_maintenance_request']) ? 'checked' : '' ?> style="margin-top:0.2rem;">
+                <div>
+                  <div style="font-weight:600; font-size:0.88rem; color:var(--ink);">🚛 Gamit sa Byahe / Trip Requisition</div>
+                  <div style="font-size:0.77rem; color:var(--ink-soft); margin-top:0.1rem;">
+                    Para sa mga tools, safety equipment, strap, o consumable na gagamitin ng crew sa biyahe ng truck na ito.
+                  </div>
+                </div>
+              </label>
+
+              <label id="optMaintLabel" style="display:flex; align-items:flex-start; gap:0.55rem; padding:0.55rem 0.7rem; border-radius:6px; border:1px solid var(--line); background:var(--surface); cursor:pointer;">
+                <input type="radio" name="is_maintenance_request" id="type_maintenance" value="1" <?= !empty($_POST['is_maintenance_request']) ? 'checked' : '' ?> style="margin-top:0.2rem;">
+                <div>
+                  <div style="font-weight:600; font-size:0.88rem; color:var(--ink);">🔧 Kumpuni at Pyesa / Vehicle Repair &amp; Maintenance</div>
+                  <div style="font-size:0.77rem; color:var(--ink-soft); margin-top:0.1rem;">
+                    Para sa pagkukumpuni, preventive maintenance (PMS), piyesa, o langis ng mismong sasakyan (e.g. brake pads, bulbs, tires).
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <div id="maintReqAlert" style="margin-top:0.6rem; font-size:0.8rem; display:none; padding:0.5rem 0.7rem; border-radius:6px;"></div>
           </div>
         </div>
 
@@ -360,34 +381,74 @@ require __DIR__ . '/../includes/header.php';
     });
   })();
 
-  // Show the "Para sa pag-aayos ng truck" checkbox for ANY selected
-  // truck — a driver may need brake pads, a bulb, a rim, etc. for a
-  // truck that is still marked Available. Under Maintenance trucks get
-  // it auto-checked (a trip request is blocked for them anyway).
+  // Interactive Sync for Truck Selection & Requisition Type
   (function () {
     var truckSelect = document.getElementById('truck_id');
     var maintGroup = document.getElementById('maintReqGroup');
-    var maintCheckbox = document.getElementById('is_maintenance_request');
-    var maintHint = document.getElementById('maintReqHint');
-    if (!truckSelect || !maintGroup || !maintCheckbox) return;
+    var typeTrip = document.getElementById('type_trip');
+    var typeMaint = document.getElementById('type_maintenance');
+    var maintAlert = document.getElementById('maintReqAlert');
+    var optTripLabel = document.getElementById('optTripLabel');
+    var optMaintLabel = document.getElementById('optMaintLabel');
+    var purposePreset = document.getElementById('purpose_preset');
+    if (!truckSelect || !maintGroup || !typeTrip || !typeMaint) return;
 
     function sync(fromUser) {
       var opt = truckSelect.options[truckSelect.selectedIndex];
       var status = opt ? (opt.dataset.status || '') : '';
       var hasTruck = !!opt && opt.value !== '';
       maintGroup.style.display = hasTruck ? '' : 'none';
-      if (!hasTruck) { maintCheckbox.checked = false; return; }
+      if (!hasTruck) {
+        maintAlert.style.display = 'none';
+        return;
+      }
+
       if (status === 'under_maintenance') {
-        if (fromUser === true) maintCheckbox.checked = true;
-        maintHint.textContent = 'Repair only.';
-      } else if (status === 'on_trip') {
-        maintHint.textContent = 'Verify if repair.';
+        typeMaint.checked = true;
+        typeTrip.disabled = true;
+        optTripLabel.style.opacity = '0.5';
+        optTripLabel.style.cursor = 'not-allowed';
+        maintAlert.style.display = 'block';
+        maintAlert.style.background = 'var(--amber-tint, #FAF4EB)';
+        maintAlert.style.border = '1px solid var(--amber-border, #EDDCBE)';
+        maintAlert.style.color = 'var(--ink, #161E26)';
+        maintAlert.innerHTML = '<strong>⚠️ Naka-Under Maintenance ang Truck:</strong> Awtomatikong itinakda bilang Kumpuni/Pyesa. Hindi maaaring mag-file ng trip equipment habang sumasailalim sa repair.';
       } else {
-        maintHint.textContent = 'e.g. Pads, bulbs, rims';
+        typeTrip.disabled = false;
+        optTripLabel.style.opacity = '1';
+        optTripLabel.style.cursor = 'pointer';
+        if (typeMaint.checked) {
+          maintAlert.style.display = 'block';
+          maintAlert.style.background = 'var(--blue-tint, #EEF4F8)';
+          maintAlert.style.border = '1px solid var(--blue-border, #C5D9E8)';
+          maintAlert.style.color = 'var(--ink, #161E26)';
+          maintAlert.innerHTML = '<strong>🔧 Repair Tag:</strong> Ang kahilingang ito ay para sa pagkukumpuni ng sasakyan. Maaaring ilagay ng supervisor sa "Under Maintenance" ang truck kung kinakailangan.';
+        } else {
+          maintAlert.style.display = 'none';
+        }
       }
     }
 
     truckSelect.addEventListener('change', function () { sync(true); });
+    typeTrip.addEventListener('change', function () { sync(false); });
+    typeMaint.addEventListener('change', function () { sync(false); });
+
+    if (purposePreset) {
+      purposePreset.addEventListener('change', function () {
+        var val = this.value;
+        if (val.indexOf('PMS') !== -1 || val.indexOf('Repair') !== -1 || val.indexOf('Inspection') !== -1) {
+          typeMaint.checked = true;
+          sync(false);
+        } else if (val.indexOf('Trip') !== -1 || val.indexOf('Delivery') !== -1 || val.indexOf('Loading') !== -1) {
+          var opt = truckSelect.options[truckSelect.selectedIndex];
+          if (!opt || opt.dataset.status !== 'under_maintenance') {
+            typeTrip.checked = true;
+            sync(false);
+          }
+        }
+      });
+    }
+
     sync(false);
   })();
 </script>

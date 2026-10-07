@@ -117,7 +117,7 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="card" id="audit-scan-card">
       <h2 class="card-heading">Scan to confirm</h2>
-      <p style="color:var(--ink-soft); font-size:0.85rem; margin:0 0 0.75rem;">Scan each QR tag. Rows auto-check.</p>
+      <p style="color:var(--ink-soft); font-size:0.85rem; margin:0 0 0.75rem;">I-scan ang bawat QR tag upang makumpirma.</p>
       <button type="button" id="audit-scan-toggle" class="btn btn-outline btn-sm">Start camera</button>
       <span id="audit-scan-count" class="badge role" style="margin-left:0.5rem;" role="status" aria-live="polite"><?= count($expected) ?> of <?= count($expected) ?> confirmed</span>
       <p id="audit-scan-hint" style="font-size:0.78rem; color:var(--ink-soft); margin-top:0.5rem;">Camera resets checks. Manual entry available.</p>

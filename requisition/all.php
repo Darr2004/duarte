@@ -119,6 +119,15 @@ require __DIR__ . '/../includes/header.php';
             </td>
             <td data-label="Truck">
               <?= truck_plate_badge($r['truck_plate_snapshot']) ?>
+              <?php if (!empty($r['is_maintenance_request'])): ?>
+                <div style="margin-top:0.25rem;">
+                  <span class="badge" style="background:var(--blue-tint); color:var(--blue-info); border:1px solid var(--blue-border); font-size:0.72rem; font-weight:600;" title="Requisition para sa pyesa o pagkukumpuni ng sasakyan">🔧 Pyesa / Repair</span>
+                </div>
+              <?php elseif (!empty($r['truck_plate_snapshot'])): ?>
+                <div style="margin-top:0.25rem;">
+                  <span class="badge" style="background:var(--surface-subtle); color:var(--ink-soft); border:1px solid var(--line); font-size:0.72rem; font-weight:500;" title="Requisition para sa mga gamit ng crew sa biyahe">🚛 Gamit sa Byahe</span>
+                </div>
+              <?php endif; ?>
             </td>
             <td class="mono td-detail" data-label="Submitted" style="font-size:0.8rem; color:var(--ink-soft);">
               <?= date('M j, Y g:ia', strtotime($r['created_at'])) ?>

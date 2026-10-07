@@ -241,7 +241,7 @@ function expire_stale_requisitions(PDO $pdo): int
     $stmt = $pdo->prepare(
         "UPDATE requisitions
             SET status = 'cancelled',
-                decision_note = 'Auto-expired — requisitions are only valid on the day they were submitted.',
+                decision_note = 'Nag-expire — ang mga kahilingan ay may bisa lamang sa araw ng pag-submit.',
                 decided_by = NULL,
                 decided_at = NOW()
           WHERE status IN ('pending', 'approved')

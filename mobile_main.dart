@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:crypto/crypto.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -169,11 +170,11 @@ class AppStrings {
     'nav_my_activity': {Language.tl: 'Aking Gawain', Language.en: 'My Activity'},
 
     // Inventory Verify & Release Screen
-    'inv_hero_title': {Language.tl: 'I-SCAN ANG QR CODE', Language.en: 'SCAN QR CODE'},
-    'inv_hero_subtitle': {Language.tl: 'Itapat sa QR code.', Language.en: 'Scan requisition QR code.'},
+    'inv_hero_title': {Language.tl: 'SMART SCANNER (RELEASE O GAMIT)', Language.en: 'SMART SCANNER (RELEASE OR ITEM)'},
+    'inv_hero_subtitle': {Language.tl: 'Itapat sa QR ng Driver, Item Tag, o Barcode.', Language.en: 'Scan Driver QR, Item Tag, or Barcode.'},
     'inv_scan_btn': {Language.tl: 'BUKSAN ANG SCANNER', Language.en: 'OPEN CAMERA SCANNER'},
     'inv_manual_label': {Language.tl: 'O ilagay ang code:', Language.en: 'Or enter code manually:'},
-    'inv_manual_hint': {Language.tl: 'Hal. REQ-2026-001 o token', Language.en: 'E.g. REQ-2026-001 or token'},
+    'inv_manual_hint': {Language.tl: 'Hal. REQ-2026-001, AST-... o barcode', Language.en: 'E.g. REQ-2026-001, AST-... or barcode'},
     'inv_lookup_btn': {Language.tl: 'Hanapin', Language.en: 'Search'},
     'inv_ready_title': {Language.tl: 'Handa nang I-release', Language.en: 'Ready for Release'},
     'inv_no_ready': {Language.tl: 'Walang nakabinbing release ngayon.', Language.en: 'No pending releases found.'},
@@ -188,7 +189,7 @@ class AppStrings {
     'inv_truck': {Language.tl: 'Sasakyan / Truck:', Language.en: 'Vehicle / Truck:'},
     'inv_date': {Language.tl: 'Petsa:', Language.en: 'Date:'},
     'inv_purpose': {Language.tl: 'Layunin:', Language.en: 'Purpose:'},
-    'inv_scan_item_barcode': {Language.tl: 'I-scan ang QR Code', Language.en: 'Scan Item QR Code'},
+    'inv_scan_item_barcode': {Language.tl: 'I-scan ang QR Code', Language.en: 'Scan QR Code'},
     'inv_verify_all': {Language.tl: 'I-verify Lahat', Language.en: 'Verify All'},
     'inv_unverify_all': {Language.tl: 'I-reset', Language.en: 'Reset'},
     'inv_verified_status': {Language.tl: 'Na-verify', Language.en: 'Verified'},
@@ -200,17 +201,17 @@ class AppStrings {
     'inv_partial_btn': {Language.tl: 'I-release ang Na-verify', Language.en: 'Release Verified Only'},
 
     // Camera Scanner Modal
-    'cam_scanner_title': {Language.tl: 'Camera Scanner', Language.en: 'Camera Scanner'},
-    'cam_guide': {Language.tl: 'Itapat ang QR code.', Language.en: 'Align QR in frame.'},
+    'cam_scanner_title': {Language.tl: 'Smart Scanner', Language.en: 'Smart Scanner'},
+    'cam_guide': {Language.tl: 'Itapat sa QR ng Driver o Tag/Barcode ng Gamit.', Language.en: 'Align Driver QR or Item Tag/Barcode in frame.'},
     'cam_torch': {Language.tl: 'Ilaw / Flash', Language.en: 'Torch / Flash'},
     'cam_flip': {Language.tl: 'Palitan ang Camera', Language.en: 'Switch Camera'},
 
     // Item Stock Check (QR Scan) Screen
-    'isc_hero_title': {Language.tl: 'I-SCAN ANG ITEM QR', Language.en: 'SCAN ITEM QR'},
-    'isc_hero_subtitle': {Language.tl: 'I-scan para sa stock.', Language.en: 'Scan for real-time stock.'},
+    'isc_hero_title': {Language.tl: 'SMART SCANNER (KONDISYON AT STOCK)', Language.en: 'SMART SCANNER (CONDITION & STOCK)'},
+    'isc_hero_subtitle': {Language.tl: 'Itapat sa barcode, asset tag, o QR ng driver.', Language.en: 'Scan barcode, asset tag, or driver QR.'},
     'isc_scan_btn': {Language.tl: 'BUKSAN ANG SCANNER', Language.en: 'OPEN SCANNER'},
     'isc_manual_label': {Language.tl: 'O ilagay ang code:', Language.en: 'Or enter code manually:'},
-    'isc_manual_hint': {Language.tl: 'Hal. TOOL-001 o PPE-005', Language.en: 'E.g. TOOL-001 or PPE-005'},
+    'isc_manual_hint': {Language.tl: 'Hal. AST-..., PRT-005, o REQ-...', Language.en: 'E.g. AST-..., PRT-005, or REQ-...'},
     'isc_lookup_btn': {Language.tl: 'Hanapin', Language.en: 'Search'},
     'isc_not_found': {Language.tl: 'Hindi nahanap ang item.', Language.en: 'Item not found.'},
     'isc_scan_another': {Language.tl: 'I-SCAN ANG IBANG ITEM', Language.en: 'SCAN ANOTHER ITEM'},
@@ -574,8 +575,8 @@ final globalNotifications = NotificationsNotifier();
 // In-App Auto-Update Manager (One-Click App Updates)
 // ---------------------------------------------------------
 class AppUpdateChecker {
-  static const int currentVersionCode = 1;
-  static const String currentVersionName = '1.0.0';
+  static const int currentVersionCode = 12;
+  static const String currentVersionName = '1.2.7';
   static const MethodChannel _channel = MethodChannel('com.duarte.duarte_app/updater');
 
   static bool _hasPromptedThisSession = false;
@@ -614,7 +615,7 @@ class AppUpdateChecker {
 
     final latestCode = (info['latest_version_code'] as num?)?.toInt() ?? 1;
     final latestName = (info['latest_version_name'] ?? '1.0.0').toString();
-    final apkUrl = (info['apk_url'] ?? 'https://duarte.onrender.com/duarte-app.apk').toString();
+    final apkUrl = (info['apk_url'] ?? '${AppConfig.ngrokUrl}/../duarte-app.apk').toString();
     final notes = (info['release_notes'] ?? '').toString();
     final force = info['force_update'] == true;
 
@@ -736,16 +737,26 @@ class AppUpdateChecker {
 // App Configuration & State Manager
 // ---------------------------------------------------------
 class AppConfig {
-  static const String renderUrl = 'https://duarte.onrender.com/api';
-  static const String ngrokUrl = 'https://outshine-aroma-angles.ngrok-free.dev/duarte/api';
-  static const String defaultUrl = renderUrl;
+  static const String ngrokUrl = 'https://spruce-trapdoor-unsorted.ngrok-free.dev/duarte/api';
+  static const String cloudflareUrl = ngrokUrl;
+  static const String defaultUrl = ngrokUrl;
   static const String emulatorUrl = 'http://10.0.2.2/duarte/api';
   static const String localUrl = 'http://localhost/duarte/api';
 
   static Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString('base_url');
-    if (stored != null && (stored.contains('infinityfree') || stored.contains('epizy') || stored.contains('site.je') || stored.contains('YOUR-SUBDOMAIN') || stored.contains('marital-dividing-popcorn'))) {
+    if (stored != null && (stored.contains('infinityfree') ||
+        stored.contains('epizy') ||
+        stored.contains('site.je') ||
+        stored.contains('YOUR-SUBDOMAIN') ||
+        stored.contains('marital-dividing-popcorn') ||
+        stored.contains('outshine-aroma-angles') ||
+        stored.contains('trycloudflare') ||
+        stored.contains('swim-surveillance') ||
+        stored.contains('onrender.com') ||
+        stored.contains('duarte.onrender') ||
+        (stored.contains('ngrok') && !stored.contains('spruce-trapdoor-unsorted')))) {
       await prefs.setString('base_url', defaultUrl);
       return defaultUrl;
     }
@@ -1001,6 +1012,10 @@ class AppItemImage extends StatelessWidget {
         ),
         child: Image.network(
           imageUrl!.trim(),
+          headers: const {
+            'ngrok-skip-browser-warning': 'true',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 10) DuaRTEApp/1.0',
+          },
           width: width,
           height: height,
           fit: fit,
@@ -1111,43 +1126,56 @@ PreferredSizeWidget buildWebStyleAppBar({
   required String activeTitle,
   required Map<String, dynamic> user,
   List<Widget>? actions,
+  bool showBackButton = false,
 }) {
   return AppBar(
+    automaticallyImplyLeading: showBackButton,
+    leading: showBackButton
+        ? IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).maybePop(),
+          )
+        : null,
     backgroundColor: AppColors.charcoal2,
-    titleSpacing: 16,
+    titleSpacing: showBackButton ? 0 : 14,
     title: Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
           'assets/images/logo.png',
-          height: 22,
+          height: 20,
           fit: BoxFit.contain,
           errorBuilder: (_, __, ___) => const SizedBox.shrink(),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 7),
         const Text(
           'DuaRTE',
           style: TextStyle(
             color: AppColors.amberOnDark,
             fontWeight: FontWeight.bold,
-            fontSize: 18,
-            letterSpacing: 0.8,
+            fontSize: 16.5,
+            letterSpacing: 0.6,
           ),
         ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-          decoration: BoxDecoration(
-            color: AppColors.charcoalHover,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: AppColors.charcoalBorder),
-          ),
-          child: Text(
-            activeTitle.toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
+        const SizedBox(width: 6),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+            decoration: BoxDecoration(
+              color: AppColors.charcoalHover,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: AppColors.charcoalBorder),
+            ),
+            child: Text(
+              activeTitle.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
             ),
           ),
         ),
@@ -1156,12 +1184,12 @@ PreferredSizeWidget buildWebStyleAppBar({
     actions: [
       // Quick Language Toggle Chip in App Bar
       Padding(
-        padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 2),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () => globalLanguage.toggle(),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
               color: AppColors.charcoalHover,
               borderRadius: BorderRadius.circular(16),
@@ -1174,12 +1202,12 @@ PreferredSizeWidget buildWebStyleAppBar({
                   globalLanguage.isTagalog ? '🇵🇭 TL' : '🇺🇸 EN',
                   style: const TextStyle(
                     color: AppColors.amberOnDark,
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 3),
-                const Icon(Icons.swap_horiz, size: 14, color: AppColors.amberOnDark),
+                const SizedBox(width: 2),
+                const Icon(Icons.swap_horiz, size: 13, color: AppColors.amberOnDark),
               ],
             ),
           ),
@@ -1192,11 +1220,13 @@ PreferredSizeWidget buildWebStyleAppBar({
           final count = globalNotifications.unreadCount;
           return IconButton(
             tooltip: globalLanguage.isTagalog ? 'Mga Notification' : 'Notifications',
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            constraints: const BoxConstraints(),
             icon: Badge(
               isLabelVisible: count > 0,
               label: Text(count > 99 ? '99+' : '$count'),
               backgroundColor: AppColors.amber,
-              child: const Icon(Icons.notifications_outlined, color: Colors.white70),
+              child: const Icon(Icons.notifications_outlined, color: Colors.white70, size: 22),
             ),
             onPressed: () {
               Navigator.push(
@@ -1207,14 +1237,15 @@ PreferredSizeWidget buildWebStyleAppBar({
           );
         },
       ),
+      const SizedBox(width: 4),
       Padding(
-        padding: const EdgeInsets.only(right: 14),
+        padding: const EdgeInsets.only(right: 12),
         child: CircleAvatar(
-          radius: 16,
+          radius: 14,
           backgroundColor: AppColors.amber,
           child: Text(
             (user['full_name'] ?? user['username'] ?? 'U')[0].toUpperCase(),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
           ),
         ),
       ),
@@ -2398,8 +2429,8 @@ class _LoginScreenState extends State<LoginScreen> {
               runSpacing: 6,
               children: [
                 ActionChip(
-                  label: const Text('Cloud Server'),
-                  onPressed: () => ctrl.text = AppConfig.renderUrl,
+                  label: const Text('Online Server'),
+                  onPressed: () => ctrl.text = AppConfig.ngrokUrl,
                 ),
                 ActionChip(
                   label: const Text('Local Network'),
@@ -2636,7 +2667,14 @@ class _QrCameraScannerModalState extends State<QrCameraScannerModal> {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
     facing: CameraFacing.back,
-    formats: [BarcodeFormat.qrCode],
+    formats: [
+      BarcodeFormat.qrCode,
+      BarcodeFormat.code128,
+      BarcodeFormat.code39,
+      BarcodeFormat.ean13,
+      BarcodeFormat.ean8,
+      BarcodeFormat.upcA,
+    ],
   );
   bool _hasScanned = false;
 
@@ -2684,7 +2722,7 @@ class _QrCameraScannerModalState extends State<QrCameraScannerModal> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          globalLanguage.t('cam_scanner_title'),
+          globalLanguage.choice('Smart Scanner', 'Smart Scanner'),
           style: const TextStyle(color: AppColors.amberOnDark, fontSize: 16, fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -2747,7 +2785,29 @@ class _QrCameraScannerModalState extends State<QrCameraScannerModal> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.amber.withOpacity(0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.qr_code_scanner, color: AppColors.amber, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        globalLanguage.choice(
+                          'Itapat sa QR ng Driver o Tag ng Gamit',
+                          'Scan Driver QR or Item Tag',
+                        ),
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -2772,7 +2832,8 @@ class _QrCameraScannerModalState extends State<QrCameraScannerModal> {
 // ---------------------------------------------------------
 class InventoryVerifyReleaseScreen extends StatefulWidget {
   final Map<String, dynamic> user;
-  const InventoryVerifyReleaseScreen({super.key, required this.user});
+  final String? initialToken;
+  const InventoryVerifyReleaseScreen({super.key, required this.user, this.initialToken});
 
   @override
   State<InventoryVerifyReleaseScreen> createState() => _InventoryVerifyReleaseScreenState();
@@ -2780,19 +2841,28 @@ class InventoryVerifyReleaseScreen extends StatefulWidget {
 
 class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScreen> {
   bool _isLoading = false;
-  List<dynamic> _approvedRequests = [];
   final TextEditingController _tokenController = TextEditingController();
   Map<String, dynamic>? _searchedRequest;
   bool _isSearching = false;
 
   // Track verified item line IDs per requisition ID
   final Map<int, Set<int>> _verifiedItemsMap = {};
+  // Track live rotating QR handshake per requisition ID
+  final Map<int, String> _detectedHandshakeMap = {};
+  // Track specifically scanned physical asset units per line ID
+  final Map<int, int> _scannedAssetForLine = {};
+  final Map<int, String> _scannedTagLabelForLine = {};
   bool _isServerOffline = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchApprovedRequests();
+    if (widget.initialToken != null && widget.initialToken!.trim().isNotEmpty) {
+      _tokenController.text = widget.initialToken!.trim();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _lookupToken(widget.initialToken!.trim());
+      });
+    }
   }
 
   @override
@@ -2837,79 +2907,7 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
     });
   }
 
-  Future<void> _scanItemBarcode(int reqId, List<dynamic> items) async {
-    final scanned = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (_) => const QrCameraScannerModal()),
-    );
-    if (scanned == null || scanned.trim().isEmpty) return;
 
-    final code = scanned.trim().toLowerCase();
-    Map<String, dynamic>? matchedItem;
-
-    for (final raw in items) {
-      final it = raw as Map<String, dynamic>;
-      final itemName = (it['item_name'] ?? '').toString().toLowerCase();
-      final itemCode = (it['item_code'] ?? '').toString().toLowerCase();
-      final itemId = (it['item_id'] ?? '').toString().toLowerCase();
-      final lineId = (it['id'] ?? '').toString().toLowerCase();
-
-      if (code == itemCode ||
-          code == itemId ||
-          code == 'itm-$itemId' ||
-          code == lineId ||
-          code == itemName ||
-          (itemCode.isNotEmpty && (code.contains(itemCode) || itemCode.contains(code)))) {
-        matchedItem = it;
-        break;
-      }
-    }
-
-    if (matchedItem != null) {
-      HapticFeedback.mediumImpact();
-      final rawId = matchedItem['id'];
-      final lineId = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
-      setState(() {
-        _getVerifiedSet(reqId).add(lineId);
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    globalLanguage.isTagalog
-                        ? 'Na-verify: ${matchedItem['item_name'] ?? "Gamit"}!'
-                        : 'Verified: ${matchedItem['item_name'] ?? "Item"}!',
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: AppColors.greenOk,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } else {
-      HapticFeedback.lightImpact();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              globalLanguage.isTagalog
-                  ? 'Hindi tumutugma ang QR code ($scanned) sa alinmang gamit sa requisition na ito.'
-                  : 'Scanned QR code ($scanned) does not match any item in this requisition.',
-            ),
-            backgroundColor: AppColors.redDanger,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    }
-  }
 
   Future<void> _openCameraScanner() async {
     final scanned = await Navigator.push<String>(
@@ -2922,33 +2920,59 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
     }
   }
 
-  Future<void> _fetchApprovedRequests() async {
-    setState(() => _isLoading = true);
-    try {
-      final baseUrl = await AppConfig.getBaseUrl();
-      final url = Uri.parse('$baseUrl/requisitions.php?user_id=${widget.user['id']}&role=${widget.user['role']}&tab=approved&token=${widget.user['token'] ?? ''}');
-      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 8));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final payload = data['data'] ?? data;
-        if (mounted) {
-          setState(() {
-            _approvedRequests = payload is List ? payload : [];
-            _isServerOffline = false;
-          });
-        }
-      } else {
-        if (mounted) setState(() => _isServerOffline = true);
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isServerOffline = true);
+  Future<void> _refreshCurrentScreen() async {
+    if (_searchedRequest != null && _tokenController.text.trim().isNotEmpty) {
+      await _lookupToken(_tokenController.text);
     }
-    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _lookupToken(String token) async {
     String cleanToken = token.trim();
     if (cleanToken.isEmpty) return;
+
+    // Smart Auto-Routing: If scanned code is an Item or Asset Tag (AST-...)
+    if (cleanToken.toUpperCase().startsWith('AST-') ||
+        cleanToken.contains('tag=AST-') ||
+        cleanToken.contains('item_code=')) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            globalLanguage.choice(
+              'Tag ng Gamit ito! Binubuksan ang Kondisyon at Stock...',
+              'Item Tag detected! Opening condition & stock...',
+            ),
+          ),
+          backgroundColor: AppColors.blueInfo,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ItemStockCheckScreen(
+            user: widget.user,
+            initialCode: cleanToken,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (cleanToken.toUpperCase().startsWith('REQ-') || cleanToken.toUpperCase().startsWith('REQ#') || cleanToken.toUpperCase().startsWith('REQ ')) {
+      cleanToken = cleanToken.substring(4).trim();
+    } else if (cleanToken.startsWith('#') && !cleanToken.contains('token=')) {
+      cleanToken = cleanToken.substring(1).trim();
+    }
+
+    String? liveHandshake;
+    if (cleanToken.contains('#')) {
+      final parts = cleanToken.split('#');
+      cleanToken = parts[0];
+      if (parts.length > 1) {
+        liveHandshake = parts.sublist(1).join('#');
+      }
+    }
 
     if (cleanToken.contains('token=')) {
       final match = RegExp(r'[?&]token=([^&]+)').firstMatch(cleanToken);
@@ -2966,7 +2990,13 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
         final data = jsonDecode(res.body);
         final payload = data['data'] ?? data;
         if (payload is List && payload.isNotEmpty) {
-          setState(() => _searchedRequest = payload.first as Map<String, dynamic>);
+          final foundReq = payload.first as Map<String, dynamic>;
+          final rawId = foundReq['id'];
+          final reqId = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
+          if (liveHandshake != null && reqId > 0) {
+            _detectedHandshakeMap[reqId] = liveHandshake;
+          }
+          setState(() => _searchedRequest = foundReq);
         } else {
           setState(() => _searchedRequest = null);
           if (mounted) {
@@ -2999,6 +3029,7 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
     final verifiedSet = _getVerifiedSet(reqId);
     final totalCount = items.length;
     final verifiedCount = verifiedSet.length;
+    final driverName = req['requester_name'] ?? req['driver_name'] ?? 'Driver';
 
     if (verifiedCount == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -3015,7 +3046,57 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
     }
 
     if (verifiedCount >= totalCount) {
-      // All items verified: standard full release confirmation
+      // Check if driver live dynamic QR handshake is present: instant frictionless release!
+      if (_detectedHandshakeMap.containsKey(reqId)) {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            title: Row(
+              children: [
+                const Icon(Icons.flash_on, color: AppColors.greenOk, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  globalLanguage.choice('Live Dual-Custody Release', 'Live Dual-Custody Release'),
+                  style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
+            ),
+            content: Text(
+              globalLanguage.isTagalog
+                  ? 'Matagumpay na na-verify ang Live QR ni $driverName!\n\nLahat ng $totalCount gamit ay handa nang i-release para sa Requisition #$reqId nang walang kailangang PIN.'
+                  : 'Driver Live QR ($driverName) successfully verified!\n\nAll $totalCount items ready for instant release for Requisition #$reqId without PIN.',
+              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(globalLanguage.t('cancel'), style: const TextStyle(color: AppColors.inkSoft)),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.greenOk, foregroundColor: Colors.white),
+                onPressed: () => Navigator.pop(ctx, true),
+                icon: const Icon(Icons.check_circle_outline, size: 18),
+                label: Text(globalLanguage.isTagalog ? 'I-release Agad' : 'Release Now'),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed == true) {
+          await _executeRelease(
+            reqId,
+            req['qr_token']?.toString(),
+            verifiedSet.toList(),
+            null,
+            liveHandshake: _detectedHandshakeMap[reqId],
+          );
+        }
+        return;
+      }
+
+      // Fallback: full release confirmation with driver PIN / override
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -3286,7 +3367,17 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
                       return;
                     }
                     Navigator.pop(ctx);
-                    await _promptDriverHandshakeAndRelease(req, verifiedItemIds, reason);
+                    if (_detectedHandshakeMap.containsKey(reqId)) {
+                      await _executeRelease(
+                        reqId,
+                        req['qr_token']?.toString(),
+                        verifiedItemIds,
+                        reason,
+                        liveHandshake: _detectedHandshakeMap[reqId],
+                      );
+                    } else {
+                      await _promptDriverHandshakeAndRelease(req, verifiedItemIds, reason);
+                    }
                   },
                   child: Text(globalLanguage.t('inv_partial_btn')),
                 ),
@@ -3448,6 +3539,7 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
     String? partialReason, {
     String? driverPin,
     String? overrideReason,
+    String? liveHandshake,
   }) async {
     setState(() => _isLoading = true);
     try {
@@ -3462,11 +3554,19 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
         'user_id': widget.user['id'],
         'token': widget.user['token'] ?? '',
       };
+      if (liveHandshake != null && liveHandshake.isNotEmpty) {
+        payload['live_handshake_token'] = liveHandshake;
+      }
       if (driverPin != null && driverPin.isNotEmpty) {
         payload['driver_pin'] = driverPin;
       }
       if (overrideReason != null && overrideReason.isNotEmpty) {
         payload['override_reason'] = overrideReason;
+      }
+      if (_scannedAssetForLine.isNotEmpty) {
+        final Map<String, int> assetMap = {};
+        _scannedAssetForLine.forEach((k, v) => assetMap[k.toString()] = v);
+        payload['asset_choice'] = assetMap;
       }
 
       final res = await http.post(
@@ -3502,9 +3602,11 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
           ),
         );
         _verifiedItemsMap.remove(reqId);
+        _detectedHandshakeMap.remove(reqId);
+        _scannedAssetForLine.clear();
+        _scannedTagLabelForLine.clear();
         setState(() => _searchedRequest = null);
         _tokenController.clear();
-        _fetchApprovedRequests();
         return true;
       } else {
         if (!mounted) return false;
@@ -3605,6 +3707,32 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
                         ),
                       ),
                     ),
+                    if (_detectedHandshakeMap.containsKey(reqId)) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.greenTint,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.greenBorder, width: 1.2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.flash_on, size: 12, color: AppColors.greenOk),
+                            const SizedBox(width: 3),
+                            Text(
+                              globalLanguage.isTagalog ? 'LIVE HANDSHAKE ✓' : 'LIVE HANDSHAKE ✓',
+                              style: const TextStyle(
+                                color: AppColors.greenOk,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 Text(
@@ -3700,56 +3828,49 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
             ),
             const SizedBox(height: 10),
 
-            // Verification Tools Row: Scan Barcode button + Verify All / Reset
+            // Verification Tools: 1-Tap "I-check Lahat" + Quick Reset (No 2nd camera scan)
             if (isApproved) ...[
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                        side: const BorderSide(color: AppColors.charcoal2),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isAllVerified ? AppColors.greenOk : AppColors.amber,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        elevation: 1,
                       ),
-                      icon: const Icon(Icons.qr_code_scanner, size: 17, color: AppColors.ink),
+                      icon: Icon(isAllVerified ? Icons.check_circle : Icons.done_all, size: 19),
                       label: Text(
-                        globalLanguage.t('inv_scan_item_barcode'),
-                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.ink),
+                        isAllVerified
+                            ? (globalLanguage.isTagalog ? 'LAHAT AY NA-CHECK ✓' : 'ALL CHECKED ✓')
+                            : (globalLanguage.isTagalog ? 'I-CHECK LAHAT NG GAMIT' : 'CHECK ALL ITEMS'),
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, letterSpacing: 0.3),
                       ),
-                      onPressed: () => _scanItemBarcode(reqId, items),
+                      onPressed: () => _verifyAllItems(reqId, items),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    ),
-                    icon: Icon(
-                      isAllVerified ? Icons.restart_alt : Icons.done_all,
-                      size: 16,
-                      color: isAllVerified ? AppColors.inkSoft : AppColors.greenOk,
-                    ),
-                    label: Text(
-                      isAllVerified
-                          ? globalLanguage.t('inv_unverify_all')
-                          : globalLanguage.t('inv_verify_all'),
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        color: isAllVerified ? AppColors.inkSoft : AppColors.greenOk,
+                  if (verifiedCount > 0) ...[
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.inkSoft,
+                        side: const BorderSide(color: AppColors.line),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
+                      icon: const Icon(Icons.restart_alt, size: 16),
+                      label: Text(
+                        globalLanguage.isTagalog ? 'I-reset' : 'Reset',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      onPressed: () => _unverifyAllItems(reqId),
                     ),
-                    onPressed: () {
-                      if (isAllVerified) {
-                        _unverifyAllItems(reqId);
-                      } else {
-                        _verifyAllItems(reqId, items);
-                      }
-                    },
-                  ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
             ],
 
             // Item Checklist Rows
@@ -3811,7 +3932,7 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
                                     ),
                                     const SizedBox(width: 8),
                                   ],
-                                  if (isBorrow)
+                                  if (isBorrow) ...[
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                       decoration: BoxDecoration(
@@ -3823,6 +3944,34 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
                                         style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.blueInfo),
                                       ),
                                     ),
+                                    if (_scannedTagLabelForLine.containsKey(lineId)) ...[
+                                      const SizedBox(width: 5),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.greenTint,
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: AppColors.greenBorder),
+                                        ),
+                                        child: Text(
+                                          '${_scannedTagLabelForLine[lineId]} ✓',
+                                          style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.greenOk),
+                                        ),
+                                      ),
+                                    ],
+                                  ] else ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.greenTint,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        globalLanguage.isTagalog ? 'KONSUMO' : 'CONSUMABLE',
+                                        style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.greenOk),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ],
@@ -3905,7 +4054,7 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
                                 : 'PARTIAL RELEASE ONLY ($verifiedCount/$totalCount VERIFIED)')),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.3),
                   ),
-                  onPressed: () => _handleReleaseButtonPress(req),
+                  onPressed: _isLoading ? null : () => _handleReleaseButtonPress(req),
                 ),
               ),
             ],
@@ -3925,10 +4074,10 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
         user: widget.user,
       ),
       body: RefreshIndicator(
-        onRefresh: _fetchApprovedRequests,
+        onRefresh: _refreshCurrentScreen,
         color: AppColors.amber,
         child: ListView(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 84),
           children: [
             // Ambient Offline / Connectivity Status Banner
             if (_isServerOffline) ...[
@@ -3958,7 +4107,7 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
                         backgroundColor: AppColors.amber,
                         foregroundColor: Colors.white,
                       ),
-                      onPressed: _fetchApprovedRequests,
+                      onPressed: _refreshCurrentScreen,
                       child: Text(
                         globalLanguage.isTagalog ? 'I-refresh' : 'Retry',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
@@ -4098,80 +4247,113 @@ class _InventoryVerifyReleaseScreenState extends State<InventoryVerifyReleaseScr
 
             const SizedBox(height: 14),
             if (_searchedRequest != null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    globalLanguage.t('inv_found_title'),
-                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.ink),
-                  ),
-                  TextButton(
-                    onPressed: () => setState(() => _searchedRequest = null),
-                    child: Text(globalLanguage.t('close'), style: const TextStyle(color: AppColors.redDanger, fontSize: 12)),
-                  ),
-                ],
-              ),
-              _buildRequestCard(_searchedRequest!, isHighlight: true),
-              const SizedBox(height: 12),
-            ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  globalLanguage.t('inv_ready_title'),
-                  style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.ink),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _approvedRequests.isEmpty ? AppColors.surfaceSubtle : AppColors.greenTint,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _approvedRequests.isEmpty ? AppColors.line : AppColors.greenBorder,
-                    ),
-                  ),
-                  child: Text(
-                    '${_approvedRequests.length} ${globalLanguage.isTagalog ? "aprubado" : "ready"}',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: _approvedRequests.isEmpty ? AppColors.inkSoft : AppColors.greenOk,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (_isLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: CircularProgressIndicator(color: AppColors.amber)),
-              )
-            else if (_approvedRequests.isEmpty)
               Card(
+                color: AppColors.surface,
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppColors.amber, width: 1.5),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: Row(
                     children: [
-                      const Icon(Icons.assignment_turned_in_outlined, size: 48, color: AppColors.inkLight),
-                      const SizedBox(height: 12),
-                      Text(
-                        globalLanguage.isTagalog ? 'Walang Hinihintay na Release' : 'No Requisitions Pending Release',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.ink),
+                      const Icon(Icons.qr_code_scanner, color: AppColors.amber, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          globalLanguage.isTagalog ? 'Aktibong Na-scan na Requisition' : 'Active Scanned Requisition',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.ink),
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        globalLanguage.t('inv_no_ready'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.redDanger,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            final rawId = _searchedRequest!['id'];
+                            final int reqId = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
+                            _verifiedItemsMap.remove(reqId);
+                            _detectedHandshakeMap.remove(reqId);
+                            _scannedAssetForLine.clear();
+                            _scannedTagLabelForLine.clear();
+                            _searchedRequest = null;
+                            _tokenController.clear();
+                          });
+                        },
+                        icon: const Icon(Icons.close, size: 16),
+                        label: Text(
+                          globalLanguage.isTagalog ? 'I-clear / Bagong Scan' : 'Clear / New Scan',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              )
-            else
-              ..._approvedRequests.map((r) => _buildRequestCard(r as Map<String, dynamic>)),
+              ),
+              const SizedBox(height: 10),
+              _buildRequestCard(_searchedRequest!, isHighlight: true),
+            ] else ...[
+              // Pure Awaiting Scan State: zero requisitions or item cards displayed until scanned
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: AppColors.amber.withOpacity(0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.qr_code_scanner_rounded, size: 48, color: AppColors.amber),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        globalLanguage.isTagalog ? 'Naka-antabay sa Pag-scan' : 'Waiting for QR Code Scan',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: AppColors.ink),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        globalLanguage.isTagalog
+                            ? 'I-scan ang Request QR Code ng Driver mula sa kanilang Request Slip o i-type ang code sa itaas upang buksan ang item checklist at release button.'
+                            : 'Scan the Driver Request QR Code from their slip or enter the code above to open item checklist and release button.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 13, color: AppColors.inkSoft, height: 1.45),
+                      ),
+                      const SizedBox(height: 18),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceSubtle,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.line),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.lock_outline, size: 16, color: AppColors.inkSoft),
+                            const SizedBox(width: 8),
+                            Text(
+                              globalLanguage.isTagalog
+                                  ? 'Naka-lock ang checklist hangga\'t walang scan'
+                                  : 'Checklist locked until QR code is scanned',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.inkSoft),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -4428,7 +4610,7 @@ class _InventoryLoansScreenState extends State<InventoryLoansScreen> {
                           ),
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.fromLTRB(14, 14, 14, 84),
                           itemCount: _loans.length,
                           itemBuilder: (ctx, idx) {
                             final loan = _loans[idx] as Map<String, dynamic>;
@@ -4700,11 +4882,48 @@ class _ItemStockCheckScreenState extends State<ItemStockCheckScreen> {
   Future<void> _lookupItem(String code) async {
     final clean = code.trim();
     if (clean.isEmpty) return;
+
+    // Smart Auto-Routing: Detect if scanned code is a Driver Requisition QR / Token
+    String tokenCandidate = clean;
+    final uri = Uri.tryParse(clean);
+    if (uri != null && uri.queryParameters.containsKey('token')) {
+      tokenCandidate = uri.queryParameters['token']!;
+    }
+    final isReqToken = (RegExp(r'^[0-9a-fA-F]{32}').hasMatch(tokenCandidate)) ||
+        tokenCandidate.toUpperCase().startsWith('REQ-') ||
+        tokenCandidate.toUpperCase().startsWith('REQ#') ||
+        tokenCandidate.toLowerCase().contains('token=');
+
+    if (isReqToken) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            globalLanguage.choice(
+              'QR ng Driver ito! Binubuksan ang Release Verification...',
+              'Driver Request QR detected! Opening Release Verification...',
+            ),
+          ),
+          backgroundColor: AppColors.greenOk,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InventoryVerifyReleaseScreen(
+            user: widget.user,
+            initialToken: tokenCandidate,
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() { _isLoading = true; _errorMsg = null; _result = null; _assetResult = null; });
 
     // Detect if code is an asset tag (AST-...) or contains tag=AST-...
     String tagCandidate = clean;
-    final uri = Uri.tryParse(clean);
     if (uri != null && uri.queryParameters.containsKey('tag')) {
       tagCandidate = uri.queryParameters['tag']!;
     }
@@ -4786,7 +5005,7 @@ class _ItemStockCheckScreenState extends State<ItemStockCheckScreen> {
 
   Widget _buildScanView() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 84),
       child: Column(
         children: [
           const SizedBox(height: 30),
@@ -4931,7 +5150,7 @@ class _ItemStockCheckScreenState extends State<ItemStockCheckScreen> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 84),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -5336,7 +5555,7 @@ class _ItemStockCheckScreenState extends State<ItemStockCheckScreen> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 84),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -5465,6 +5684,45 @@ class _ItemStockCheckScreenState extends State<ItemStockCheckScreen> {
                     Icons.person,
                     globalLanguage.t('ahc_holder_label'),
                     '${holder['name'] ?? ''} (${holder['employee_id'] ?? ''})',
+                  ),
+                ],
+                if (asset['is_onboard_truck'] == true && asset['assigned_truck'] != null) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.greenTint,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.greenBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.local_shipping, size: 20, color: AppColors.greenOk),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                globalLanguage.choice('Kit ng Sasakyan (Permanent Onboard)', 'Vehicle Kit (Permanent Onboard)'),
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.greenOk),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${asset['assigned_truck']['plate_number'] ?? ''} • ${asset['assigned_truck']['model'] ?? ''}',
+                                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.ink),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                globalLanguage.choice('Hindi nag-eexpire — permanenteng gamit sa truck.', 'Never expires — permanent vehicle equipment.'),
+                                style: const TextStyle(fontSize: 10.5, color: AppColors.inkSoft),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
                 if (conditionNote.isNotEmpty) ...[
@@ -5892,7 +6150,8 @@ class _InventoryStockScreenState extends State<InventoryStockScreen> {
           brand.contains(_searchQuery.toLowerCase()) ||
           location.contains(_searchQuery.toLowerCase());
 
-      final matchesCat = _selectedCategory == 'All' || category == _selectedCategory;
+      final isAllCat = _selectedCategory == 'All' || _selectedCategory == globalLanguage.t('cat_all');
+      final matchesCat = isAllCat || category == _selectedCategory;
       return matchesQuery && matchesCat;
     }).toList();
   }
@@ -5920,21 +6179,55 @@ class _InventoryStockScreenState extends State<InventoryStockScreen> {
                 prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.inkSoft),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.qr_code_scanner, color: AppColors.amber),
-                  tooltip: globalLanguage.isTagalog ? 'I-Scan ang Item QR' : 'Scan Item QR',
+                  tooltip: globalLanguage.isTagalog ? 'Buksan ang Smart Scanner' : 'Open Smart Scanner',
                   onPressed: () async {
                     final nav = Navigator.of(context);
                     final code = await nav.push<String>(
                       MaterialPageRoute(builder: (_) => const QrCameraScannerModal()),
                     );
                     if (code != null && code.trim().isNotEmpty && mounted) {
-                      nav.push(
-                        MaterialPageRoute(
-                          builder: (_) => ItemStockCheckScreen(
-                            user: widget.user,
-                            initialCode: code.trim(),
+                      final clean = code.trim();
+                      String tokenCandidate = clean;
+                      final uri = Uri.tryParse(clean);
+                      if (uri != null && uri.queryParameters.containsKey('token')) {
+                        tokenCandidate = uri.queryParameters['token']!;
+                      }
+                      final isReqToken = (RegExp(r'^[0-9a-fA-F]{32}').hasMatch(tokenCandidate)) ||
+                          tokenCandidate.toUpperCase().startsWith('REQ-') ||
+                          tokenCandidate.toUpperCase().startsWith('REQ#') ||
+                          tokenCandidate.toLowerCase().contains('token=');
+
+                      if (isReqToken) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              globalLanguage.choice(
+                                'QR ng Driver ito! Binubuksan ang Release Verification...',
+                                'Driver Request QR detected! Opening Release Verification...',
+                              ),
+                            ),
+                            backgroundColor: AppColors.greenOk,
+                            duration: const Duration(seconds: 2),
                           ),
-                        ),
-                      );
+                        );
+                        nav.push(
+                          MaterialPageRoute(
+                            builder: (_) => InventoryVerifyReleaseScreen(
+                              user: widget.user,
+                              initialToken: tokenCandidate,
+                            ),
+                          ),
+                        );
+                      } else {
+                        nav.push(
+                          MaterialPageRoute(
+                            builder: (_) => ItemStockCheckScreen(
+                              user: widget.user,
+                              initialCode: clean,
+                            ),
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
@@ -5951,7 +6244,7 @@ class _InventoryStockScreenState extends State<InventoryStockScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               children: [
-                _buildCatPill(globalLanguage.t('cat_all')),
+                _buildCatPill(globalLanguage.t('cat_all'), isAll: true),
                 ..._categories.map((c) => _buildCatPill(c['name'] ?? '')),
               ],
             ),
@@ -5968,7 +6261,7 @@ class _InventoryStockScreenState extends State<InventoryStockScreen> {
                           child: Text(globalLanguage.isTagalog ? 'Walang nahanap na item.' : 'No items found.', style: const TextStyle(color: AppColors.inkSoft)),
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 84),
                           itemCount: filtered.length,
                           itemBuilder: (ctx, idx) {
                             final item = filtered[idx] as Map<String, dynamic>;
@@ -6092,12 +6385,14 @@ class _InventoryStockScreenState extends State<InventoryStockScreen> {
     );
   }
 
-  Widget _buildCatPill(String cat) {
-    final isSelected = _selectedCategory == cat;
+  Widget _buildCatPill(String cat, {bool isAll = false}) {
+    final isSelected = isAll
+        ? (_selectedCategory == 'All' || _selectedCategory == globalLanguage.t('cat_all'))
+        : (_selectedCategory == cat);
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: InkWell(
-        onTap: () => setState(() => _selectedCategory = cat),
+        onTap: () => setState(() => _selectedCategory = isAll ? 'All' : cat),
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -6120,7 +6415,9 @@ class _InventoryStockScreenState extends State<InventoryStockScreen> {
 }
 
 // ---------------------------------------------------------
-// Field Supervisor Screen: Approvals Queue
+// ---------------------------------------------------------
+// Field Supervisor Screen: Approvals Queue & History
+// (100% Web Parity with requisition/dashboard.php & approval tabs)
 // ---------------------------------------------------------
 class SupervisorApprovalsScreen extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -6132,30 +6429,40 @@ class SupervisorApprovalsScreen extends StatefulWidget {
 
 class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
   bool _isLoading = false;
-  List<dynamic> _pendingRequests = [];
+  List<dynamic> _requests = [];
+  String _activeTab = 'pending'; // 'pending', 'approved', 'declined', 'all'
+  String _searchQuery = '';
+  final TextEditingController _searchCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _fetchPending();
+    _fetchRequests();
   }
 
-  Future<void> _fetchPending() async {
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchRequests({String? tab}) async {
+    final targetTab = tab ?? _activeTab;
     setState(() => _isLoading = true);
     try {
       final baseUrl = await AppConfig.getBaseUrl();
-      final url = Uri.parse('$baseUrl/requisitions.php?user_id=${widget.user['id']}&role=${widget.user['role']}&tab=pending&token=${widget.user['token'] ?? ''}');
-      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 8));
+      final url = Uri.parse('$baseUrl/requisitions.php?user_id=${widget.user['id']}&role=${widget.user['role']}&tab=$targetTab&token=${widget.user['token'] ?? ''}');
+      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final payload = data['data'] ?? data;
         if (mounted) {
           setState(() {
-            _pendingRequests = payload is List ? payload : [];
+            _requests = payload is List ? payload : [];
           });
         }
       } else {
-        debugPrint('[SupervisorApprovals._fetchPending] HTTP ${res.statusCode}: ${res.body}');
+        debugPrint('[SupervisorApprovals._fetchRequests] HTTP ${res.statusCode}: ${res.body}');
         if (mounted && res.statusCode == 401) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(globalLanguage.choice('Na-expire o invalid na ang session mo — mag-login ulit.', 'Session expired or invalid — please log in again.'))),
@@ -6163,7 +6470,7 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
         }
       }
     } catch (e) {
-      debugPrint('[SupervisorApprovals._fetchPending] failed: $e');
+      debugPrint('[SupervisorApprovals._fetchRequests] failed: $e');
     }
     if (mounted) setState(() => _isLoading = false);
   }
@@ -6191,7 +6498,10 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(globalLanguage.t('cancel'), style: const TextStyle(color: AppColors.inkSoft))),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(globalLanguage.t('cancel'), style: const TextStyle(color: AppColors.inkSoft)),
+            ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.redDanger, foregroundColor: Colors.white),
               onPressed: () => Navigator.pop(ctx, true),
@@ -6217,7 +6527,10 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
                 : 'Confirm approval for this requisition in fleet operation.',
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(globalLanguage.t('cancel'), style: const TextStyle(color: AppColors.inkSoft))),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(globalLanguage.t('cancel'), style: const TextStyle(color: AppColors.inkSoft)),
+            ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.greenOk, foregroundColor: Colors.white),
               onPressed: () => Navigator.pop(ctx, true),
@@ -6258,7 +6571,7 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
             backgroundColor: decision == 'approved' ? AppColors.greenOk : AppColors.redDanger,
           ),
         );
-        _fetchPending();
+        _fetchRequests();
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -6273,72 +6586,162 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
     }
   }
 
+  Widget _buildTabBtn(String tabKey, String labelTagalog, String labelEng, IconData icon) {
+    final isSelected = _activeTab == tabKey;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() => _activeTab = tabKey);
+          _fetchRequests(tab: tabKey);
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.amber : AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: isSelected ? AppColors.amber : AppColors.line),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: isSelected ? Colors.white : AppColors.inkSoft),
+              const SizedBox(width: 4),
+              Text(
+                globalLanguage.choice(labelTagalog, labelEng),
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? Colors.white : AppColors.inkSoft,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final q = _searchQuery.toLowerCase().trim();
+    final filtered = _requests.where((req) {
+      if (q.isEmpty) return true;
+      final id = '${req['id']}'.toLowerCase();
+      final requester = '${req['requester_name'] ?? ''}'.toLowerCase();
+      final plate = '${req['plate_number'] ?? req['truck_plate_snapshot'] ?? ''}'.toLowerCase();
+      final purpose = '${req['purpose'] ?? ''}'.toLowerCase();
+      return id.contains(q) || requester.contains(q) || plate.contains(q) || purpose.contains(q);
+    }).toList();
+
     return Scaffold(
       backgroundColor: AppColors.paper,
       appBar: buildWebStyleAppBar(
         context: context,
-        activeTitle: globalLanguage.t('sup_title'),
+        activeTitle: globalLanguage.choice('Aprubasyon ng Requisition', 'Requisition Approvals'),
         user: widget.user,
       ),
       body: RefreshIndicator(
-        onRefresh: _fetchPending,
+        onRefresh: _fetchRequests,
         color: AppColors.amber,
         child: ListView(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 84),
           children: [
+            // Segmented Filter Tabs
+            Row(
+              children: [
+                _buildTabBtn('pending', 'Naghihintay', 'Pending', Icons.hourglass_top_rounded),
+                const SizedBox(width: 6),
+                _buildTabBtn('approved', 'Inaprubahan', 'Approved', Icons.check_circle_outline),
+                const SizedBox(width: 6),
+                _buildTabBtn('declined', 'Tinanggihan', 'Declined', Icons.cancel_outlined),
+                const SizedBox(width: 6),
+                _buildTabBtn('all', 'Lahat', 'All', Icons.list_alt_rounded),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Search Bar
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (val) => setState(() => _searchQuery = val),
+                decoration: InputDecoration(
+                  hintText: globalLanguage.choice('Maghanap sa REQ #, drayber, o plate...', 'Search REQ #, driver, or plate...'),
+                  hintStyle: const TextStyle(color: AppColors.inkLight, fontSize: 12.5),
+                  prefixIcon: const Icon(Icons.search, size: 18, color: AppColors.inkSoft),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 16, color: AppColors.inkSoft),
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  globalLanguage.isTagalog ? 'Nakabinbing Kahilingan' : 'Pending Requisitions',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.ink),
+                  globalLanguage.choice('Talaan ng Kahilingan', 'Requisition Queue'),
+                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.ink),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _pendingRequests.isEmpty ? AppColors.surfaceSubtle : AppColors.amberTint,
+                    color: filtered.isEmpty ? AppColors.surfaceSubtle : AppColors.amberTint,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _pendingRequests.isEmpty ? AppColors.line : AppColors.amberBorder,
-                    ),
+                    border: Border.all(color: filtered.isEmpty ? AppColors.line : AppColors.amberBorder),
                   ),
                   child: Text(
-                    '${_pendingRequests.length} pending',
+                    '${filtered.length} ${globalLanguage.choice('kahilingan', 'requests')}',
                     style: TextStyle(
-                      fontSize: 11.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: _pendingRequests.isEmpty ? AppColors.inkSoft : AppColors.amber,
+                      color: filtered.isEmpty ? AppColors.inkSoft : AppColors.amber,
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 10),
+
             if (_isLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 40),
                 child: Center(child: CircularProgressIndicator(color: AppColors.amber)),
               )
-            else if (_pendingRequests.isEmpty)
+            else if (filtered.isEmpty)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.thumb_up_alt_outlined, size: 48, color: AppColors.inkLight),
+                      const Icon(Icons.inbox_outlined, size: 48, color: AppColors.inkLight),
                       const SizedBox(height: 12),
                       Text(
-                        globalLanguage.isTagalog ? 'Walang Nakabinbing Aprubasyon' : 'No Pending Approvals',
+                        globalLanguage.choice('Walang Nahanap na Requisition', 'No Requisitions Found'),
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.ink),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        globalLanguage.isTagalog
-                            ? 'Lahat ng kahilingan sa fleet ay naproseso na. Malinis ang iyong queue!'
-                            : 'All fleet requisitions have been processed. Queue is clear!',
+                        globalLanguage.choice(
+                          'Walang tumutugma sa kasalukuyang tab o paghahanap.',
+                          'No records match the current tab filter or search query.',
+                        ),
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft),
                       ),
@@ -6347,7 +6750,7 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
                 ),
               )
             else
-              ..._pendingRequests.map((req) {
+              ...filtered.map((req) {
                 final reqId = req['id'];
                 final requester = req['requester_name'] ?? 'Personnel';
                 final truck = req['plate_number'] ?? req['truck_plate_snapshot'] ?? 'Walang Truck';
@@ -6355,6 +6758,50 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
                 final items = (req['items'] as List<dynamic>?) ?? [];
                 final isUrgent = req['manual_urgent'] == 1 || req['manual_urgent'] == true;
                 final priorityScore = req['priority_score'] ?? '0.00';
+                final priorityStock = (req['priority_stock'] as num?)?.toInt() ?? 0;
+                final priorityDemand = (req['priority_demand'] as num?)?.toInt() ?? 0;
+                final priorityTrust = (req['priority_trust'] as num?)?.toInt() ?? 0;
+                final scoreVal = double.tryParse(priorityScore.toString()) ?? 0.0;
+                final status = (req['status'] ?? 'pending').toString().toUpperCase();
+                final decisionNote = req['decision_note']?.toString() ?? '';
+
+                Color priorityBg = AppColors.surfaceSubtle;
+                Color priorityBorder = AppColors.line;
+                Color priorityColor = AppColors.inkSoft;
+                if (isUrgent || scoreVal >= 70) {
+                  priorityBg = AppColors.redTint;
+                  priorityBorder = AppColors.redBorder;
+                  priorityColor = AppColors.redDanger;
+                } else if (scoreVal >= 40) {
+                  priorityBg = AppColors.amberTint;
+                  priorityBorder = AppColors.amberBorder;
+                  priorityColor = AppColors.amber;
+                } else if (scoreVal > 0) {
+                  priorityBg = AppColors.blueTint;
+                  priorityBorder = AppColors.blueBorder;
+                  priorityColor = AppColors.blueInfo;
+                }
+
+                Color statusBg = AppColors.surfaceSubtle;
+                Color statusColor = AppColors.inkSoft;
+                Color statusBorder = AppColors.line;
+                if (status == 'PENDING') {
+                  statusBg = AppColors.amberTint;
+                  statusColor = AppColors.amber;
+                  statusBorder = AppColors.amberBorder;
+                } else if (status == 'APPROVED') {
+                  statusBg = AppColors.greenTint;
+                  statusColor = AppColors.greenOk;
+                  statusBorder = AppColors.greenBorder;
+                } else if (status == 'DECLINED') {
+                  statusBg = AppColors.redTint;
+                  statusColor = AppColors.redDanger;
+                  statusBorder = AppColors.redBorder;
+                } else if (status == 'RELEASED') {
+                  statusBg = AppColors.blueTint;
+                  statusColor = AppColors.blueInfo;
+                  statusBorder = AppColors.blueBorder;
+                }
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -6387,6 +6834,19 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
                                     style: const TextStyle(color: AppColors.amberOnDark, fontSize: 11, fontWeight: FontWeight.bold),
                                   ),
                                 ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: statusBg,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: statusBorder),
+                                  ),
+                                  child: Text(
+                                    status,
+                                    style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
                                 if (isUrgent) ...[
                                   const SizedBox(width: 6),
                                   Container(
@@ -6402,15 +6862,22 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
                               ],
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceSubtle,
+                                color: priorityBg,
                                 borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: AppColors.line),
+                                border: Border.all(color: priorityBorder),
                               ),
-                              child: Text(
-                                'Priority: $priorityScore',
-                                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.inkSoft),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.bolt_rounded, size: 12, color: priorityColor),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'Priority: $priorityScore',
+                                    style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: priorityColor),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -6420,19 +6887,100 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
                           children: [
                             const Icon(Icons.person, size: 15, color: AppColors.inkSoft),
                             const SizedBox(width: 4),
-                            Text(requester, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.ink)),
-                            const Spacer(),
+                            Expanded(
+                              child: Text(requester, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.ink)),
+                            ),
                             const Icon(Icons.local_shipping, size: 15, color: AppColors.inkSoft),
                             const SizedBox(width: 4),
-                            Text(truck, style: const TextStyle(fontSize: 12, color: AppColors.inkSoft)),
+                            Text(truck, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.ink)),
                           ],
                         ),
+                        // Fleet Requisition Type & Status Badges
+                        if (req['truck_id'] != null || (req['truck_plate_snapshot'] != null && req['truck_plate_snapshot'].toString().isNotEmpty)) ...[
+                          const SizedBox(height: 5),
+                          Wrap(
+                            spacing: 5,
+                            runSpacing: 4,
+                            children: [
+                              if (req['is_maintenance_request'] == 1 || req['is_maintenance_request'] == true || req['is_maintenance_request'] == '1') ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.blueTint,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: AppColors.blueBorder),
+                                  ),
+                                  child: const Text('🔧 Pyesa / Repair', style: TextStyle(color: AppColors.blueInfo, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                                if ('${req['truck_status']}'.toLowerCase() == 'available')
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.amberTint,
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: AppColors.amberBorder),
+                                    ),
+                                    child: const Text('⚠️ Truck Available', style: TextStyle(color: AppColors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ),
+                              ] else ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceSubtle,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: AppColors.line),
+                                  ),
+                                  child: const Text('🚛 Gamit sa Byahe', style: TextStyle(color: AppColors.inkSoft, fontSize: 10, fontWeight: FontWeight.w600)),
+                                ),
+                                if ('${req['truck_status']}'.toLowerCase() == 'under_maintenance')
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.redTint,
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: AppColors.redBorder),
+                                    ),
+                                    child: const Text('⛔ Truck In Repair', style: TextStyle(color: AppColors.redDanger, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ),
+                              ],
+                            ],
+                          ),
+                        ],
                         if (purpose.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text('Layunin: $purpose', style: const TextStyle(fontSize: 12, color: AppColors.inkSoft)),
                         ],
+                        if (scoreVal > 0 || priorityStock > 0 || priorityDemand > 0 || priorityTrust > 0) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.paper,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.line),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.analytics_outlined, size: 14, color: AppColors.inkSoft),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    globalLanguage.choice(
+                                      'MCDA Batayan: 📦 Stock $priorityStock% • 🚨 Demand $priorityDemand% • 🤝 Pagsasauli $priorityTrust%',
+                                      'MCDA Factors: 📦 Stock $priorityStock% • 🚨 Demand $priorityDemand% • 🤝 Return Trust $priorityTrust%',
+                                    ),
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.ink),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const Divider(color: AppColors.line, height: 16),
-                        Text('Mga Hinihiling na Gamit (${items.length}):', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.ink)),
+                        Text(
+                          globalLanguage.choice('Mga Hinihiling na Gamit (${items.length}):', 'Requested Items (${items.length}):'),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.ink),
+                        ),
                         const SizedBox(height: 4),
                         ...items.map((it) {
                           final itName = it['item_name'] ?? 'Item';
@@ -6445,40 +6993,925 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
                               children: [
                                 const Text('• ', style: TextStyle(color: AppColors.amber, fontWeight: FontWeight.bold)),
                                 Expanded(child: Text(itName, style: const TextStyle(fontSize: 12, color: AppColors.ink))),
-                                Text('$qty $unit ${isBorrow ? "(HIRAM)" : ""}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.inkSoft)),
+                                Text(
+                                  '$qty $unit ${isBorrow ? "(HIRAM)" : ""}',
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.inkSoft),
+                                ),
                               ],
                             ),
                           );
                         }),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.greenOk,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                ),
-                                icon: const Icon(Icons.check, size: 16),
-                                label: Text(globalLanguage.t('approve'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                onPressed: () => _decide(reqId, 'approved'),
-                              ),
+                        if (decisionNote.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: status == 'DECLINED' ? AppColors.redTint : AppColors.greenTint,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: status == 'DECLINED' ? AppColors.redBorder : AppColors.greenBorder),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.redDanger,
-                                  side: const BorderSide(color: AppColors.redBorder),
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  status == 'DECLINED' ? Icons.info_outline : Icons.chat_bubble_outline,
+                                  size: 14,
+                                  color: status == 'DECLINED' ? AppColors.redDanger : AppColors.greenOk,
                                 ),
-                                icon: const Icon(Icons.close, size: 16),
-                                label: Text(globalLanguage.t('reject'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                onPressed: () => _decide(reqId, 'declined'),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    '${status == "DECLINED" ? (globalLanguage.isTagalog ? "Dahilan: " : "Reason: ") : "Note: "}$decisionNote',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: status == 'DECLINED' ? AppColors.redDanger : AppColors.greenOk,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (status == 'PENDING') ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.greenOk,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  icon: const Icon(Icons.check, size: 16),
+                                  label: Text(globalLanguage.t('approve'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                  onPressed: () => _decide(reqId, 'approved'),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.redDanger,
+                                    side: const BorderSide(color: AppColors.redBorder),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  icon: const Icon(Icons.close, size: 16),
+                                  label: Text(globalLanguage.t('reject'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                  onPressed: () => _decide(reqId, 'declined'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------
+// Field Supervisor & Fleet Screen: Fleet Trucks Management
+// (100% Web Parity with inventory/trucks.php)
+// ---------------------------------------------------------
+class FleetTrucksScreen extends StatefulWidget {
+  final Map<String, dynamic> user;
+  const FleetTrucksScreen({super.key, required this.user});
+
+  @override
+  State<FleetTrucksScreen> createState() => _FleetTrucksScreenState();
+}
+
+class _FleetTrucksScreenState extends State<FleetTrucksScreen> {
+  bool _isLoading = false;
+  Map<String, dynamic> _metrics = {
+    'total': 0,
+    'available': 0,
+    'on_trip': 0,
+    'under_maintenance': 0,
+  };
+  List<dynamic> _trucks = [];
+  String _selectedFilter = 'all'; // 'all', 'available', 'on_trip', 'under_maintenance'
+  String _searchQuery = '';
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTrucks();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchTrucks() async {
+    setState(() => _isLoading = true);
+    try {
+      final baseUrl = await AppConfig.getBaseUrl();
+      final url = Uri.parse('$baseUrl/trucks.php?user_id=${widget.user['id']}&token=${widget.user['token'] ?? ''}');
+      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 10));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data['success'] == true && data['data'] != null) {
+          final payload = data['data'];
+          if (mounted) {
+            setState(() {
+              _metrics = (payload['metrics'] as Map<String, dynamic>?) ?? _metrics;
+              _trucks = (payload['trucks'] as List<dynamic>?) ?? [];
+            });
+          }
+        }
+      } else {
+        debugPrint('[FleetTrucksScreen._fetchTrucks] HTTP ${res.statusCode}: ${res.body}');
+      }
+    } catch (e) {
+      debugPrint('[FleetTrucksScreen._fetchTrucks] error: $e');
+    }
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'available':
+        return globalLanguage.choice('Magagamit', 'Available');
+      case 'on_trip':
+        return globalLanguage.choice('Bumabyahe', 'On Trip');
+      case 'under_maintenance':
+        return globalLanguage.choice('Nasa Maintenance', 'Under Maintenance');
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  Future<void> _updateTruckStatus(Map<String, dynamic> truck, String newStatus) async {
+    final truckId = truck['id'];
+    final plate = truck['plate_number'] ?? 'Truck';
+    final unreturned = (truck['unreturned_loans'] as num?)?.toInt() ?? 0;
+
+    if (newStatus == 'under_maintenance' && unreturned > 0) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: Text(
+            globalLanguage.choice('May Gamit na Hindi Naisasauli', 'Unreturned Equipment Warning'),
+            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.redDanger, fontSize: 16),
+          ),
+          content: Text(
+            globalLanguage.choice(
+              'Ang sasakyang $plate ay may $unreturned na gamit na hiniram at hindi pa naisasauli sa warehouse. Sigurado ka bang ilalagay ito sa Maintenance?',
+              'Truck $plate currently has $unreturned unreturned borrowed equipment. Are you sure you want to set it Under Maintenance?',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(globalLanguage.t('cancel'), style: const TextStyle(color: AppColors.inkSoft)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber, foregroundColor: Colors.white),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(globalLanguage.choice('Ituloy Pa Rin', 'Proceed Anyway')),
+            ),
+          ],
+        ),
+      );
+      if (proceed != true) return;
+    }
+
+    try {
+      final baseUrl = await AppConfig.getBaseUrl();
+      final url = Uri.parse('$baseUrl/trucks.php');
+      final res = await http.post(
+        url,
+        headers: AppConfig.authHeaders(widget.user),
+        body: jsonEncode({
+          'action': 'update_status',
+          'truck_id': truckId,
+          'status': newStatus,
+          'user_id': widget.user['id'],
+          'token': widget.user['token'] ?? '',
+        }),
+      );
+
+      final data = jsonDecode(res.body);
+      if (res.statusCode == 200 && data['success'] == true) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              globalLanguage.choice(
+                'Nai-update ang katayuan ng $plate sa ${_statusLabel(newStatus)}.',
+                'Status of $plate updated to ${_statusLabel(newStatus)}.',
+              ),
+            ),
+            backgroundColor: AppColors.greenOk,
+          ),
+        );
+        _fetchTrucks();
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['error'] ?? data['message'] ?? 'Failed to update truck status.'),
+            backgroundColor: AppColors.redDanger,
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Server connection error.'), backgroundColor: AppColors.redDanger),
+      );
+    }
+  }
+
+  void _showStatusDialog(Map<String, dynamic> truck) {
+    final currentStatus = truck['status'] ?? 'available';
+    final plate = truck['plate_number'] ?? 'Truck';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(color: AppColors.lineStrong, borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                const Icon(Icons.local_shipping_outlined, color: AppColors.amber, size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  globalLanguage.choice('Baguhin ang Katayuan ($plate)', 'Change Status ($plate)'),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.ink),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _buildStatusTile(
+              ctx,
+              statusKey: 'available',
+              title: globalLanguage.choice('Magagamit (Available)', 'Available'),
+              subtitle: globalLanguage.choice('Handang gamitin para sa operasyon o trip', 'Ready for fleet operations and trips'),
+              icon: Icons.check_circle_outline,
+              color: AppColors.greenOk,
+              isSelected: currentStatus == 'available',
+              onTap: () {
+                Navigator.pop(ctx);
+                _updateTruckStatus(truck, 'available');
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildStatusTile(
+              ctx,
+              statusKey: 'on_trip',
+              title: globalLanguage.choice('Bumabyahe (On Trip)', 'On Trip'),
+              subtitle: globalLanguage.choice('Kasalukuyang ginagamit sa labas o delivery', 'Currently deployed for field delivery or service'),
+              icon: Icons.alt_route_rounded,
+              color: AppColors.blueInfo,
+              isSelected: currentStatus == 'on_trip',
+              onTap: () {
+                Navigator.pop(ctx);
+                _updateTruckStatus(truck, 'on_trip');
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildStatusTile(
+              ctx,
+              statusKey: 'under_maintenance',
+              title: globalLanguage.choice('Nasa Maintenance (Under Maintenance)', 'Under Maintenance'),
+              subtitle: globalLanguage.choice('Sumasailalim sa kumpuni, inspeksyon o repair', 'Under repair, preventative maintenance or inspection'),
+              icon: Icons.build_circle_outlined,
+              color: AppColors.redDanger,
+              isSelected: currentStatus == 'under_maintenance',
+              onTap: () {
+                Navigator.pop(ctx);
+                _updateTruckStatus(truck, 'under_maintenance');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusTile(
+    BuildContext ctx, {
+    required String statusKey,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.08) : AppColors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isSelected ? color : AppColors.line),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isSelected ? color : AppColors.ink)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.inkSoft)),
+                ],
+              ),
+            ),
+            if (isSelected) Icon(Icons.check, color: color, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String labelTagalog,
+    required String labelEng,
+    required int count,
+    required IconData icon,
+    required Color color,
+    required String filterValue,
+  }) {
+    final isSelected = _selectedFilter == filterValue;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _selectedFilter = filterValue),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.08) : AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: isSelected ? color : AppColors.line, width: isSelected ? 1.5 : 1),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 18, color: color),
+              const SizedBox(height: 4),
+              Text(
+                '$count',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                globalLanguage.choice(labelTagalog, labelEng),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: isSelected ? color : AppColors.inkSoft),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _searchQuery.toLowerCase().trim();
+    final filtered = _trucks.where((t) {
+      if (_selectedFilter != 'all' && t['status'] != _selectedFilter) {
+        return false;
+      }
+      if (q.isEmpty) return true;
+      final plate = '${t['plate_number'] ?? ''}'.toLowerCase();
+      final model = '${t['model'] ?? ''}'.toLowerCase();
+      final brand = '${t['brand'] ?? ''}'.toLowerCase();
+      return plate.contains(q) || model.contains(q) || brand.contains(q);
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: AppColors.paper,
+      appBar: buildWebStyleAppBar(
+        context: context,
+        activeTitle: globalLanguage.choice('Pamamahala ng Fleet Trucks', 'Fleet Trucks Management'),
+        user: widget.user,
+      ),
+      body: RefreshIndicator(
+        onRefresh: _fetchTrucks,
+        color: AppColors.amber,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 84),
+          children: [
+            // Top Metrics Grid
+            Row(
+              children: [
+                _buildMetricCard(
+                  labelTagalog: 'Kabuuan',
+                  labelEng: 'Total',
+                  count: (_metrics['total'] as num?)?.toInt() ?? 0,
+                  icon: Icons.local_shipping_outlined,
+                  color: AppColors.ink,
+                  filterValue: 'all',
+                ),
+                const SizedBox(width: 6),
+                _buildMetricCard(
+                  labelTagalog: 'Magagamit',
+                  labelEng: 'Available',
+                  count: (_metrics['available'] as num?)?.toInt() ?? 0,
+                  icon: Icons.check_circle_outline,
+                  color: AppColors.greenOk,
+                  filterValue: 'available',
+                ),
+                const SizedBox(width: 6),
+                _buildMetricCard(
+                  labelTagalog: 'Bumabyahe',
+                  labelEng: 'On Trip',
+                  count: (_metrics['on_trip'] as num?)?.toInt() ?? 0,
+                  icon: Icons.alt_route_rounded,
+                  color: AppColors.blueInfo,
+                  filterValue: 'on_trip',
+                ),
+                const SizedBox(width: 6),
+                _buildMetricCard(
+                  labelTagalog: 'Maintenance',
+                  labelEng: 'Maintenance',
+                  count: (_metrics['under_maintenance'] as num?)?.toInt() ?? 0,
+                  icon: Icons.build_circle_outlined,
+                  color: AppColors.redDanger,
+                  filterValue: 'under_maintenance',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Search Bar
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (val) => setState(() => _searchQuery = val),
+                decoration: InputDecoration(
+                  hintText: globalLanguage.choice('Maghanap sa plate # o modelo...', 'Search plate # or model...'),
+                  hintStyle: const TextStyle(color: AppColors.inkLight, fontSize: 12.5),
+                  prefixIcon: const Icon(Icons.search, size: 18, color: AppColors.inkSoft),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 16, color: AppColors.inkSoft),
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  globalLanguage.choice('Mga Sasakyan ng Kompanya', 'Company Fleet Vehicles'),
+                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.ink),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: filtered.isEmpty ? AppColors.surfaceSubtle : AppColors.amberTint,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: filtered.isEmpty ? AppColors.line : AppColors.amberBorder),
+                  ),
+                  child: Text(
+                    '${filtered.length} ${globalLanguage.choice('sasakyan', 'trucks')}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: filtered.isEmpty ? AppColors.inkSoft : AppColors.amber,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(child: CircularProgressIndicator(color: AppColors.amber)),
+              )
+            else if (filtered.isEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.no_crash_outlined, size: 48, color: AppColors.inkLight),
+                      const SizedBox(height: 12),
+                      Text(
+                        globalLanguage.choice('Walang Nahanap na Sasakyan', 'No Trucks Found'),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.ink),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        globalLanguage.choice(
+                          'Walang tumutugma sa kasalukuyang filter o paghahanap.',
+                          'No vehicles match the selected filter or search terms.',
+                        ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...filtered.map((truck) {
+                final plate = truck['plate_number'] ?? 'N/A';
+                final model = truck['model'] ?? '';
+                final brand = truck['brand'] ?? '';
+                final status = truck['status'] ?? 'available';
+                final unreturned = (truck['unreturned_loans'] as num?)?.toInt() ?? 0;
+                final repairs = (truck['active_repairs'] as num?)?.toInt() ?? 0;
+                final repairIds = '${truck['active_repair_ids'] ?? ''}'.trim();
+                final trips = (truck['active_trip_requisitions'] as num?)?.toInt() ?? 0;
+
+                Color statusBg = AppColors.greenTint;
+                Color statusColor = AppColors.greenOk;
+                Color statusBorder = AppColors.greenBorder;
+                IconData statusIcon = Icons.check_circle_outline;
+
+                if (status == 'on_trip') {
+                  statusBg = AppColors.blueTint;
+                  statusColor = AppColors.blueInfo;
+                  statusBorder = AppColors.blueBorder;
+                  statusIcon = Icons.alt_route_rounded;
+                } else if (status == 'under_maintenance') {
+                  statusBg = AppColors.redTint;
+                  statusColor = AppColors.redDanger;
+                  statusBorder = AppColors.redBorder;
+                  statusIcon = Icons.build_circle_outlined;
+                }
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: repairs > 0 || unreturned > 0 ? AppColors.amberBorder : AppColors.line,
+                      width: 1,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.charcoal,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    plate,
+                                    style: const TextStyle(color: AppColors.amberOnDark, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: statusBg,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: statusBorder),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(statusIcon, size: 13, color: statusColor),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _statusLabel(status),
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusColor),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$brand $model'.trim().isNotEmpty ? '$brand $model'.trim() : globalLanguage.choice('Standard Fleet Vehicle', 'Standard Fleet Vehicle'),
+                          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.ink),
+                        ),
+                        if (unreturned > 0) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.amberTint,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.amberBorder),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.handyman_outlined, size: 14, color: AppColors.amber),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    globalLanguage.choice(
+                                      'May $unreturned na hiniram na gamit na hindi pa naisasauli.',
+                                      'Has $unreturned unreturned borrowed equipment.',
+                                    ),
+                                    style: const TextStyle(fontSize: 11.5, color: AppColors.amberDim, fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (repairs > 0) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.blueTint,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.blueBorder),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.build_circle_outlined, size: 14, color: AppColors.blueInfo),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    globalLanguage.choice(
+                                      'May $repairs na kahilingan para sa kumpuni/pyesa ${repairIds.isNotEmpty ? "(Req #$repairIds)" : ""}.',
+                                      'Has $repairs vehicle repair/parts request(s) ${repairIds.isNotEmpty ? "(Req #$repairIds)" : ""}.',
+                                    ),
+                                    style: const TextStyle(fontSize: 11.5, color: AppColors.blueInfo, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (status == 'available') ...[
+                            const SizedBox(height: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppColors.amberTint,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: AppColors.amberBorder),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.info_outline, size: 13, color: AppColors.amber),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      globalLanguage.choice(
+                                        'May nakapilang kumpuni pero Available pa ang truck. Suriin kung dapat i-set as Under Maintenance.',
+                                        'Repair ticket pending while truck is Available. Check if truck should be set Under Maintenance.',
+                                      ),
+                                      style: const TextStyle(fontSize: 10.5, color: AppColors.amberDim, fontWeight: FontWeight.w500),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ] else if (status == 'under_maintenance') ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceSubtle,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.line),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.info_outline, size: 13, color: AppColors.inkSoft),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    globalLanguage.choice(
+                                      'Naka-Under Maintenance sa bakuran (Walang nakabinbing pyesa ticket).',
+                                      'Under Maintenance in yard (No pending parts ticket).',
+                                    ),
+                                    style: const TextStyle(fontSize: 10.5, color: AppColors.inkSoft),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (trips > 0) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceSubtle,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.line),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.alt_route_rounded, size: 13, color: AppColors.inkSoft),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    globalLanguage.choice(
+                                      'May $trips na trip requisition para sa byahe ng truck na ito.',
+                                      'Has $trips trip requisition(s) assigned for hauling.',
+                                    ),
+                                    style: const TextStyle(fontSize: 11, color: AppColors.inkSoft, fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        // ─── Onboard Equipment Kit (Permanent Truck Tools) ───
+                        Builder(builder: (context) {
+                          final onboardTools = (truck['onboard_tools'] as List<dynamic>?) ?? [];
+                          if (onboardTools.isNotEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceSubtle,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.line),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.handyman_outlined, size: 14, color: AppColors.amber),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              globalLanguage.choice('Kit ng Sasakyan (Onboard)', 'Onboard Kit'),
+                                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.ink),
+                                            ),
+                                          ],
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.greenTint,
+                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(color: AppColors.greenBorder),
+                                          ),
+                                          child: Text(
+                                            '${onboardTools.length} ${globalLanguage.choice('Gamit', 'Tools')}',
+                                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.greenOk),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      globalLanguage.choice(
+                                        'Permanenteng gamit sa truck. Walang countdown at hindi nag-eexpire.',
+                                        'Permanent truck tools. No loan countdown; never expires.',
+                                      ),
+                                      style: const TextStyle(fontSize: 10, color: AppColors.inkSoft),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
+                                      children: onboardTools.map((tool) {
+                                        final t = tool as Map<String, dynamic>;
+                                        final tName = t['item_name'] ?? 'Tool';
+                                        final tTag = t['asset_tag'] ?? '';
+                                        return Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.surface,
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: AppColors.lineStrong),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.check_circle, size: 12, color: AppColors.greenOk),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                tName,
+                                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.ink),
+                                              ),
+                                              if (tTag.isNotEmpty) ...[
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '($tTag)',
+                                                  style: const TextStyle(fontSize: 9.5, color: AppColors.inkSoft, fontFamily: 'monospace'),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          } else {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceSubtle,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: AppColors.line),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.info_outline, size: 13, color: AppColors.inkSoft),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        globalLanguage.choice(
+                                          'Walang naka-assign na Kit ng Sasakyan (Maaaring i-assign sa Web).',
+                                          'No Onboard Kit assigned (Can be assigned via Web).',
+                                        ),
+                                        style: const TextStyle(fontSize: 10.5, color: AppColors.inkSoft),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                        }),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.ink,
+                              side: const BorderSide(color: AppColors.lineStrong),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                            ),
+                            icon: const Icon(Icons.swap_horiz_rounded, size: 16, color: AppColors.amber),
+                            label: Text(
+                              globalLanguage.choice('Baguhin ang Katayuan', 'Change Status'),
+                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: () => _showStatusDialog(truck),
+                          ),
                         ),
                       ],
                     ),
@@ -6603,14 +8036,14 @@ class DuarteBottomBar extends StatelessWidget {
 class SupervisorDashboardScreen extends StatefulWidget {
   final Map<String, dynamic> user;
   final VoidCallback onNavigateToApprovals;
-  final VoidCallback onNavigateToCatalog;
+  final VoidCallback onNavigateToFleet;
   final VoidCallback onNavigateToRequests;
 
   const SupervisorDashboardScreen({
     super.key,
     required this.user,
     required this.onNavigateToApprovals,
-    required this.onNavigateToCatalog,
+    required this.onNavigateToFleet,
     required this.onNavigateToRequests,
   });
 
@@ -6638,7 +8071,7 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
     try {
       final baseUrl = await AppConfig.getBaseUrl();
       final url = Uri.parse('$baseUrl/dashboard.php?user_id=${widget.user['id']}&token=${widget.user['token'] ?? ''}');
-      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 6));
+      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 20));
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
@@ -6909,7 +8342,7 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
         onRefresh: _fetchDashboardData,
         color: AppColors.amber,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 84),
           children: [
             if (_errorMessage != null) ...[
               Container(
@@ -7024,12 +8457,12 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    icon: const Icon(Icons.assignment_outlined, size: 17, color: AppColors.inkSoft),
+                    icon: const Icon(Icons.local_shipping_outlined, size: 17, color: AppColors.inkSoft),
                     label: Text(
-                      globalLanguage.choice('Lahat ng Kahilingan', 'All Requests'),
+                      globalLanguage.choice('Fleet Trucks', 'Fleet Trucks'),
                       style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
                     ),
-                    onPressed: widget.onNavigateToRequests,
+                    onPressed: widget.onNavigateToFleet,
                   ),
                 ),
               ],
@@ -7119,7 +8552,7 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
                     value: '$approved7d',
                     color: AppColors.greenOk,
                     border: AppColors.greenBorder,
-                    onTap: widget.onNavigateToRequests,
+                    onTap: widget.onNavigateToApprovals,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -7130,7 +8563,7 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
                     value: '$declined7d',
                     color: declined7d > 0 ? AppColors.redDanger : AppColors.inkSoft,
                     border: declined7d > 0 ? AppColors.redBorder : AppColors.line,
-                    onTap: widget.onNavigateToRequests,
+                    onTap: widget.onNavigateToApprovals,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -7321,8 +8754,15 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
                     const Divider(height: 1, color: AppColors.line),
 
                     _buildSupTile(
+                      icon: Icons.local_shipping_outlined,
+                      title: globalLanguage.choice('Fleet Trucks (Mga Sasakyan)', 'Fleet Trucks Management'),
+                      onTap: widget.onNavigateToFleet,
+                    ),
+                    const Divider(height: 1, color: AppColors.line),
+
+                    _buildSupTile(
                       icon: Icons.assignment_outlined,
-                      title: globalLanguage.choice('My Requests', 'My Requests'),
+                      title: globalLanguage.choice('Lahat ng Kahilingan', 'All Requisitions'),
                       onTap: widget.onNavigateToRequests,
                     ),
                     const Divider(height: 1, color: AppColors.line),
@@ -7330,7 +8770,14 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
                     _buildSupTile(
                       icon: Icons.inventory_2_outlined,
                       title: globalLanguage.choice('Katalogo ng Gamit', 'Browse Catalog'),
-                      onTap: widget.onNavigateToCatalog,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CatalogScreen(user: widget.user),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -7498,14 +8945,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         SupervisorDashboardScreen(
           user: widget.user,
           onNavigateToApprovals: () => setState(() => _currentIndex = 1),
-          onNavigateToCatalog: () => setState(() => _currentIndex = 2),
+          onNavigateToFleet: () => setState(() => _currentIndex = 2),
           onNavigateToRequests: () => setState(() => _currentIndex = 3),
         ),
         SupervisorApprovalsScreen(user: widget.user),
-        CatalogScreen(
-          user: widget.user,
-          onNavigateToRequests: () => setState(() => _currentIndex = 3),
-        ),
+        FleetTrucksScreen(user: widget.user),
         MyRequisitionsScreen(user: widget.user, initialTab: 'All'),
         ProfileScreen(user: widget.user, onQueueChanged: _checkOfflineQueue),
       ];
@@ -7600,9 +9044,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           label: globalLanguage.t('nav_approvals'),
         ),
         DuarteNavItem(
-          icon: Icons.inventory_2_outlined,
-          selectedIcon: Icons.inventory_2,
-          label: globalLanguage.t('nav_catalog'),
+          icon: Icons.local_shipping_outlined,
+          selectedIcon: Icons.local_shipping,
+          label: globalLanguage.choice('Fleet Trucks', 'Fleet Trucks'),
         ),
         DuarteNavItem(
           icon: Icons.assignment_outlined,
@@ -7744,7 +9188,7 @@ class _RequesterDashboardScreenState extends State<RequesterDashboardScreen> {
     try {
       final baseUrl = await AppConfig.getBaseUrl();
       final url = Uri.parse('$baseUrl/dashboard.php?user_id=${widget.user['id']}&token=${widget.user['token'] ?? ''}');
-      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 6));
+      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 20));
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
@@ -7997,7 +9441,7 @@ class _RequesterDashboardScreenState extends State<RequesterDashboardScreen> {
         onRefresh: _fetchDashboardData,
         color: AppColors.amber,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 84),
           children: [
             if (_errorMessage != null) ...[
               Container(
@@ -8578,7 +10022,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       final res = await http.get(
         url,
         headers: AppConfig.authHeaders(widget.user, isJson: false),
-      ).timeout(const Duration(seconds: 6));
+      ).timeout(const Duration(seconds: 20));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -9195,7 +10639,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           children: [
             // Top Product Picture (Full-bleed with Shopee Badges)
             Expanded(
-              flex: 11,
+              flex: 12,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -9279,33 +10723,38 @@ class _CatalogScreenState extends State<CatalogScreen> {
               ),
             ),
 
-            // Shopee Product Info & Stock
+            // Shopee Product Info & Stock (Well-spaced & Proportional)
             Expanded(
-              flex: 10,
+              flex: 11,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(9, 8, 9, 8),
+                padding: const EdgeInsets.fromLTRB(9, 7, 9, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      item['name'] ?? 'Item',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.ink,
-                        height: 1.25,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['name'] ?? 'Item',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.ink,
+                            height: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${item['item_code'] ?? 'N/A'} • ${item['category_name'] ?? 'General'}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 9.5, color: AppColors.inkSoft),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${item['item_code'] ?? 'N/A'} • ${item['category_name'] ?? 'General'}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 10, color: AppColors.inkSoft),
-                    ),
-                    const Spacer(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -9450,6 +10899,40 @@ class _CatalogScreenState extends State<CatalogScreen> {
         activeTitle: globalLanguage.t('cat_title'),
         user: widget.user,
         actions: [
+          ListenableBuilder(
+            listenable: globalCart,
+            builder: (ctx, _) {
+              final count = globalCart.count;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+                    onPressed: _openCartCheckoutSheet,
+                    tooltip: 'Cart',
+                  ),
+                  if (count > 0)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: AppColors.redDanger,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _fetchCatalog,
@@ -9461,10 +10944,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
         listenable: globalCart,
         builder: (ctx, _) {
           final count = globalCart.count;
+          if (count == 0) return const SizedBox.shrink();
           return FloatingActionButton.extended(
             backgroundColor: AppColors.amber,
             foregroundColor: Colors.white,
-            elevation: 3,
+            elevation: 4,
             onPressed: _openCartCheckoutSheet,
             icon: Badge(
               isLabelVisible: count > 0,
@@ -9472,7 +10956,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
               backgroundColor: AppColors.charcoal,
               child: const Icon(Icons.shopping_cart_checkout),
             ),
-            label: Text(count > 0 ? (globalLanguage.isTagalog ? 'Cart ($count)' : 'Cart ($count)') : globalLanguage.t('cat_cart_btn')),
+            label: Text(globalLanguage.isTagalog ? 'Tingnan ang Cart ($count)' : 'View Cart ($count)'),
           );
         },
       ),
@@ -9627,7 +11111,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                               crossAxisCount: 2,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
-                              childAspectRatio: 0.64,
+                              childAspectRatio: 0.72,
                             ),
                             itemCount: _filteredItems.length,
                             itemBuilder: (ctx, idx) => _buildShopeeProductCard(_filteredItems[idx]),
@@ -9945,25 +11429,154 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
                         _isRepairRequest = sel != null && '${sel['status']}' == 'under_maintenance';
                       }),
                     ),
-                    if (_selectedTruckId != null)
-                      CheckboxListTile(
-                        value: _isRepairRequest,
-                        onChanged: (v) => setState(() => _isRepairRequest = v ?? false),
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
-                        title: Text(
-                          globalLanguage.isTagalog
-                              ? 'Para sa pag-aayos ng truck'
-                              : 'For truck repair',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    if (_selectedTruckId != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        globalLanguage.choice('Uri ng Kahilingan para sa Truck', 'Requisition Type for Vehicle'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: AppColors.ink),
+                      ),
+                      const SizedBox(height: 6),
+                      // Option 1: Trip Gear
+                      InkWell(
+                        onTap: () {
+                          final sel = widget.trucks.firstWhere(
+                            (t) => int.tryParse('${t['id']}') == _selectedTruckId,
+                            orElse: () => null,
+                          );
+                          if (sel != null && '${sel['status']}' == 'under_maintenance') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(globalLanguage.choice(
+                                  'Hindi maaaring pumili ng Gamit sa Byahe dahil ang truck ay kasalukuyang Under Maintenance.',
+                                  'Cannot select Trip Gear because this truck is currently Under Maintenance.',
+                                )),
+                                backgroundColor: AppColors.amber,
+                              ),
+                            );
+                            return;
+                          }
+                          setState(() => _isRepairRequest = false);
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: !_isRepairRequest ? AppColors.surfaceSubtle : AppColors.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: !_isRepairRequest ? AppColors.amber : AppColors.line),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                !_isRepairRequest ? Icons.radio_button_checked : Icons.radio_button_off,
+                                size: 18,
+                                color: !_isRepairRequest ? AppColors.amber : AppColors.inkSoft,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      globalLanguage.choice('🚛 Gamit sa Byahe / Trip Requisition', '🚛 Trip Gear / Hauling Dispatch'),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: !_isRepairRequest ? AppColors.amberDim : AppColors.ink),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      globalLanguage.choice(
+                                        'Mga kagamitan at gamit ng crew para sa takdang biyahe ng truck.',
+                                        'Crew equipment, tools, and supplies for vehicle dispatch run.',
+                                      ),
+                                      style: const TextStyle(fontSize: 11, color: AppColors.inkSoft),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+                      const SizedBox(height: 6),
+                      // Option 2: Repair & Maintenance
+                      InkWell(
+                        onTap: () => setState(() => _isRepairRequest = true),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _isRepairRequest ? AppColors.blueTint : AppColors.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: _isRepairRequest ? AppColors.blueInfo : AppColors.line),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _isRepairRequest ? Icons.radio_button_checked : Icons.radio_button_off,
+                                size: 18,
+                                color: _isRepairRequest ? AppColors.blueInfo : AppColors.inkSoft,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      globalLanguage.choice('🔧 Kumpuni at Pyesa / Vehicle Repair & Parts', '🔧 Vehicle Repair & Maintenance Parts'),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: _isRepairRequest ? AppColors.blueInfo : AppColors.ink),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      globalLanguage.choice(
+                                        'Pyesa, langis, o PMS para sa pagkukumpuni ng mismong sasakyan.',
+                                        'Parts, oil, or PMS specifically to repair or service this vehicle.',
+                                      ),
+                                      style: const TextStyle(fontSize: 11, color: AppColors.inkSoft),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (() {
+                        final sel = widget.trucks.firstWhere(
+                          (t) => int.tryParse('${t['id']}') == _selectedTruckId,
+                          orElse: () => null,
+                        );
+                        return sel != null && '${sel['status']}' == 'under_maintenance';
+                      }()) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.amberTint,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.amberBorder),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.amber),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  globalLanguage.choice(
+                                    'Paalala: Naka-Under Maintenance ang truck na ito. Naka-lock sa Pyesa/Kumpuni dahil hindi pa maaaring ibiyahe.',
+                                    'Notice: This vehicle is Under Maintenance. Locked to Repair/Parts because it cannot be dispatched on trips.',
+                                  ),
+                                  style: const TextStyle(fontSize: 11, color: AppColors.amberDim, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                     const SizedBox(height: 12),
                   ],
 
                   // Urgency
-                  Text(globalLanguage.choice('Lebel ng Pangangailangan (MCDA Factor)', 'Urgency Level (MCDA Factor)'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.ink)),
+                  Text(globalLanguage.choice('Lebel ng Pangangailangan', 'Urgency Level'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.ink)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: _urgency,
@@ -10072,6 +11685,137 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
 // Tab 2: My Requisitions & Interactive QR Slip Viewer
 // ---------------------------------------------------------
 // ---------------------------------------------------------
+// Live Rotating Handshake QR Generator & Widget (Anti-Screenshot Dual-Custody)
+// ---------------------------------------------------------
+class DynamicHandshakeHelper {
+  static String generate(String qrToken, dynamic userId) {
+    final uid = userId?.toString() ?? '0';
+    final slice = DateTime.now().millisecondsSinceEpoch ~/ 30000;
+    final raw = '$qrToken:$uid:$slice:duarte_pos_handshake';
+    final bytes = utf8.encode(raw);
+    final sig = sha256.convert(bytes).toString().substring(0, 12);
+    return '$slice:$sig';
+  }
+}
+
+class DynamicPickupQrWidget extends StatefulWidget {
+  final String qrToken;
+  final dynamic userId;
+  const DynamicPickupQrWidget({super.key, required this.qrToken, required this.userId});
+
+  @override
+  State<DynamicPickupQrWidget> createState() => _DynamicPickupQrWidgetState();
+}
+
+class _DynamicPickupQrWidgetState extends State<DynamicPickupQrWidget> {
+  Timer? _timer;
+  int _secondsRemaining = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateSeconds();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          _updateSeconds();
+        });
+      }
+    });
+  }
+
+  void _updateSeconds() {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    _secondsRemaining = 30 - (now % 30);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final handshake = DynamicHandshakeHelper.generate(widget.qrToken, widget.userId);
+    final livePayload = '${widget.qrToken}#$handshake';
+    final progress = _secondsRemaining / 30.0;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.line, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: QrImageView(
+              data: livePayload,
+              version: QrVersions.auto,
+              size: 155.0,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        // Live Dual-Custody Handshake Progress Badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.greenTint,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.greenBorder),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 13,
+                height: 13,
+                child: CircularProgressIndicator(
+                  value: progress,
+                  strokeWidth: 2.2,
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.greenOk),
+                  backgroundColor: AppColors.greenBorder,
+                ),
+              ),
+              const SizedBox(width: 7),
+              Text(
+                globalLanguage.choice(
+                  '⚡ Live Handshake • Magre-refresh sa ${_secondsRemaining}s',
+                  '⚡ Live Handshake • Refreshes in ${_secondsRemaining}s',
+                ),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.greenOk),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            globalLanguage.choice(
+              'Iharap ang live QR code sa bodega counter para sa mabilisang verification nang walang PIN.',
+              'Present this live QR code at the warehouse counter for instant verification without PIN.',
+            ),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11.5, color: AppColors.inkSoft, fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------
 // Tab 2: Requisitions & Tool Loans Screen (Full Web Parity)
 // ---------------------------------------------------------
 class MyRequisitionsScreen extends StatefulWidget {
@@ -10126,9 +11870,11 @@ class _MyRequisitionsScreenState extends State<MyRequisitionsScreen> {
       String query = 'user_id=${widget.user['id']}&role=${widget.user['role']}&token=${widget.user['token'] ?? ''}';
       if (_filterTab == 'Approvals') {
         query += '&tab=pending';
+      } else {
+        query += '&tab=all';
       }
       final url = Uri.parse('$baseUrl/requisitions.php?$query');
-      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 6));
+      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 20));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -10154,8 +11900,8 @@ class _MyRequisitionsScreenState extends State<MyRequisitionsScreen> {
     setState(() => _isLoadingLoans = true);
     try {
       final baseUrl = await AppConfig.getBaseUrl();
-      final url = Uri.parse('$baseUrl/loans.php?user_id=${widget.user['id']}&token=${widget.user['token'] ?? ''}');
-      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 6));
+      final url = Uri.parse('$baseUrl/loans.php?user_id=${widget.user['id']}&role=${widget.user['role']}&token=${widget.user['token'] ?? ''}');
+      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 20));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -10629,33 +12375,11 @@ class _MyRequisitionsScreenState extends State<MyRequisitionsScreen> {
 
               const SizedBox(height: 18),
 
-              // SCANNABLE QR CODE DISPLAY (Only show QR when APPROVED for warehouse pickup!)
+              // SCANNABLE DYNAMIC LIVE QR CODE DISPLAY (Only show QR when APPROVED for warehouse pickup!)
               if (status == 'APPROVED' && qrToken.isNotEmpty) ...[
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.line, width: 2),
-                    ),
-                    child: QrImageView(
-                      data: qrToken,
-                      version: QrVersions.auto,
-                      size: 150.0,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Center(
-                  child: Text(
-                    globalLanguage.choice(
-                      'Iharap ang QR code sa warehouse counter para mai-release ang mga gamit.',
-                      'Present this QR code at the warehouse counter to claim items.',
-                    ),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 11.5, color: AppColors.inkSoft, fontWeight: FontWeight.w500),
-                  ),
+                DynamicPickupQrWidget(
+                  qrToken: qrToken,
+                  userId: widget.user['id'],
                 ),
                 const SizedBox(height: 14),
               ] else if (status == 'PENDING') ...[
@@ -10706,7 +12430,7 @@ class _MyRequisitionsScreenState extends State<MyRequisitionsScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-              ] else if (status == 'REJECTED') ...[
+              ] else if (status == 'REJECTED' || status == 'DECLINED') ...[
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -11386,7 +13110,7 @@ class _MyRequisitionsScreenState extends State<MyRequisitionsScreen> {
                           ),
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.fromLTRB(14, 14, 14, 84),
                           itemCount: _filteredRequests.length,
                           itemBuilder: (ctx, idx) {
                             final req = _filteredRequests[idx];
@@ -11453,8 +13177,10 @@ class _MyRequisitionsScreenState extends State<MyRequisitionsScreen> {
                                             'Truck: ${req['plate_number'] ?? req['truck_plate_snapshot'] ?? 'N/A'}',
                                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.ink),
                                           ),
-                                          const Spacer(),
-                                          Text('MCDA: $priorityScore', style: const TextStyle(fontSize: 11, color: AppColors.inkSoft)),
+                                          if (isSupervisor && _filterTab == 'Approvals') ...[
+                                            const Spacer(),
+                                            Text('Priority: $priorityScore', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.amber)),
+                                          ],
                                         ],
                                       ),
                                       const SizedBox(height: 8),
@@ -11492,7 +13218,7 @@ class _MyRequisitionsScreenState extends State<MyRequisitionsScreen> {
                           ),
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.fromLTRB(14, 14, 14, 84),
                           itemCount: _loans.length,
                           itemBuilder: (ctx, idx) {
                             final loan = _loans[idx];
@@ -11919,7 +13645,7 @@ class _SpecialPoScreenState extends State<SpecialPoScreen> {
     try {
       final baseUrl = await AppConfig.getBaseUrl();
       final url = Uri.parse('$baseUrl/item_requests.php?user_id=${widget.user['id']}&role=${widget.user['role']}&token=${widget.user['token'] ?? ''}');
-      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 6));
+      final res = await http.get(url, headers: AppConfig.authHeaders(widget.user, isJson: false)).timeout(const Duration(seconds: 20));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -12130,8 +13856,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               runSpacing: 6,
               children: [
                 ActionChip(
-                  label: const Text('Cloud Server'),
-                  onPressed: () => ctrl.text = AppConfig.renderUrl,
+                  label: const Text('Online Server'),
+                  onPressed: () => ctrl.text = AppConfig.ngrokUrl,
                 ),
                 ActionChip(
                   label: const Text('Local Network'),
@@ -12221,7 +13947,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         user: widget.user,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 96),
         children: [
           // User Profile Card
           Card(
@@ -12360,9 +14086,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 globalLanguage.isTagalog ? 'Suriin ang Update ng App' : 'Check for App Updates',
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.ink),
               ),
-              subtitle: Text(
+              subtitle: const Text(
                 'v${AppUpdateChecker.currentVersionName} • Online Cloud Ready',
-                style: const TextStyle(fontSize: 12, color: AppColors.inkSoft),
+                style: TextStyle(fontSize: 12, color: AppColors.inkSoft),
               ),
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.inkSoft),
               onTap: () => AppUpdateChecker.checkAndShowPrompt(context, manual: true),
