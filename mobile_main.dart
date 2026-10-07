@@ -8935,9 +8935,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     if (role == 'inventory_staff') {
       return [
         InventoryVerifyReleaseScreen(user: widget.user),
-        InventoryLoansScreen(user: widget.user),
-        ItemStockCheckScreen(user: widget.user),
         InventoryStockScreen(user: widget.user),
+        InventoryLoansScreen(user: widget.user),
         ProfileScreen(user: widget.user, onQueueChanged: _checkOfflineQueue),
       ];
     } else if (role == 'field_supervisor') {
@@ -9007,22 +9006,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         DuarteNavItem(
           icon: Icons.qr_code_scanner_outlined,
           selectedIcon: Icons.qr_code_scanner,
-          label: globalLanguage.t('nav_release'),
-        ),
-        DuarteNavItem(
-          icon: Icons.handyman_outlined,
-          selectedIcon: Icons.handyman,
-          label: globalLanguage.t('nav_loans'),
-        ),
-        DuarteNavItem(
-          icon: Icons.qr_code_2_outlined,
-          selectedIcon: Icons.qr_code_2,
-          label: globalLanguage.t('nav_scan_item'),
+          label: globalLanguage.choice('Scanner', 'Scanner'),
         ),
         DuarteNavItem(
           icon: Icons.warehouse_outlined,
           selectedIcon: Icons.warehouse,
-          label: globalLanguage.t('nav_stock'),
+          label: globalLanguage.choice('Bodega', 'Warehouse'),
+        ),
+        DuarteNavItem(
+          icon: Icons.handyman_outlined,
+          selectedIcon: Icons.handyman,
+          label: globalLanguage.choice('Mga Hiram', 'Tool Loans'),
         ),
         DuarteNavItem(
           icon: Icons.person_outline,

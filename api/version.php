@@ -18,14 +18,14 @@ $base = (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== 
 $response = [
     'status' => 'success',
     'app_name' => 'DuaRTE Mobile',
-    'latest_version_code' => 13,
-    'latest_version_name' => '1.2.8',
+    'latest_version_code' => 14,
+    'latest_version_name' => '1.2.9',
     'min_supported_version_code' => 1,
-    'apk_url' => 'https://github.com/Darr2004/duarte/releases/download/v1.2.8/duarte-app.apk',
-    'direct_apk_url' => 'https://github.com/Darr2004/duarte/releases/download/v1.2.8/duarte-app.apk',
+    'apk_url' => 'https://github.com/Darr2004/duarte/releases/download/v1.2.9/duarte-app.apk',
+    'direct_apk_url' => 'https://github.com/Darr2004/duarte/releases/download/v1.2.9/duarte-app.apk',
     'force_update' => false,
-    'release_title' => 'Pinag-isang Smart Scanner (Driver QR at Tag ng Gamit)',
-    'release_notes' => "• Pinag-isang Smart Scanner: Kahit anong QR o barcode ang i-scan (QR ng driver, barcode ng gamit, o asset tag), awtomatikong lilipat sa tamang screen nang hindi na kailangang magpalit ng tab o mag-alala kung aling scanner ang gagamitin.\n• Mas mabilis at madaling gamitin para sa warehouse staff nang walang kalituhan.",
+    'release_title' => 'Pinadaling Portal para sa Bodega (Smart Scan, Bodega & Hiram)',
+    'release_notes' => "• Na-streamline ang Inventory Portal sa 3 praktikal na tabs: [Scanner], [Bodega], at [Mga Hiram].\n• Tinanggal ang duplicate na scan tab para hindi malito ang bodegero habang naglalakad sa mga racks.\n• May real-time rack/stall locator at item condition checker.",
     'updated_at' => date('Y-m-d')
 ];
 
