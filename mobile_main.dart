@@ -575,8 +575,8 @@ final globalNotifications = NotificationsNotifier();
 // In-App Auto-Update Manager (One-Click App Updates)
 // ---------------------------------------------------------
 class AppUpdateChecker {
-  static const int currentVersionCode = 16;
-  static const String currentVersionName = '1.3.1';
+  static const int currentVersionCode = 17;
+  static const String currentVersionName = '1.3.2';
   static const MethodChannel _channel = MethodChannel('com.duarte.duarte_app/updater');
 
   static bool _hasPromptedThisSession = false;
@@ -11897,6 +11897,7 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
   // True when the parts are to repair the selected truck (brake pads, bulb,
   // rim...), not for a trip. Sent to the server as is_maintenance_request.
   bool _isRepairRequest = false;
+  String _dispatchSchedule = 'standby'; // 'today', 'tomorrow', 'standby'
   String _urgency = 'routine';
   final _purposeCtrl = TextEditingController(text: '');
   bool _isSubmitting = false;
@@ -11933,6 +11934,7 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
       'token': widget.user['token'] ?? '',
       'truck_id': _selectedTruckId,
       'is_maintenance_request': (_selectedTruckId != null && _isRepairRequest) ? 1 : 0,
+      'dispatch_schedule': _dispatchSchedule,
       'purpose': _purposeCtrl.text.trim(),
       'is_urgent': isUrgent,
       'items': payloadItems,
@@ -12325,6 +12327,43 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
                           ),
                         ),
                       ],
+
+                      const SizedBox(height: 10),
+                      Text(
+                        globalLanguage.choice('Oras ng Alis / Schedule ng Biyahe (MCDA)', 'Dispatch Schedule (Trip Urgency)'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: AppColors.ink),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDispatchOption(
+                              label: globalLanguage.choice('⚡ Mamaya', '⚡ Today'),
+                              sub: globalLanguage.choice('Within 12h', 'Within 12h'),
+                              value: 'today',
+                              color: AppColors.redDanger,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: _buildDispatchOption(
+                              label: globalLanguage.choice('🗓️ Bukas', '🗓️ Tomorrow'),
+                              sub: globalLanguage.choice('Within 24h', 'Within 24h'),
+                              value: 'tomorrow',
+                              color: AppColors.amber,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: _buildDispatchOption(
+                              label: globalLanguage.choice('🏢 Standby', '🏢 Standby'),
+                              sub: globalLanguage.choice('Sa Garahe', 'In Yard'),
+                              value: 'standby',
+                              color: AppColors.inkSoft,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                     const SizedBox(height: 12),
                   ],
@@ -12467,6 +12506,11 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
             _purposeCtrl.text = purposeText;
             if (urgency != null) _urgency = urgency;
             if (isRepair != null) _isRepairRequest = isRepair;
+            if (urgency == 'emergency' || purposeText.contains('Delivery Run')) {
+              _dispatchSchedule = 'today';
+            } else if (purposeText.contains('Change Oil')) {
+              _dispatchSchedule = 'standby';
+            }
           }
         });
       },
@@ -12485,6 +12529,47 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             color: chipText,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDispatchOption({required String label, required String sub, required String value, required Color color}) {
+    final isSelected = _dispatchSchedule == value;
+    return InkWell(
+      onTap: () => setState(() => _dispatchSchedule = value),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.08) : AppColors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isSelected ? color : AppColors.line, width: isSelected ? 1.5 : 1.0),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 11.5,
+                color: isSelected ? color : AppColors.ink,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              sub,
+              style: TextStyle(
+                fontSize: 10,
+                color: isSelected ? color : AppColors.inkSoft,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );

@@ -290,10 +290,17 @@ function score_pending_requisitions(PDO $pdo, array $requisitions): array
         if ($truck) {
             if ($truck['status'] === 'on_trip') {
                 $trip = 1.0; // Stranded on road delivery trip (Top emergency)
-            } elseif ($truck['status'] === 'available') {
-                $trip = 0.65; // Ready for immediate fleet dispatch
-            } elseif ($truck['status'] === 'under_maintenance') {
-                $trip = 0.50; // In shop waiting to re-enter service
+            } else {
+                $sched = strtolower(trim($r['dispatch_schedule'] ?? 'standby'));
+                if (in_array($sched, ['today', 'urgent_today', 'now', 'within_12h'], true)) {
+                    $trip = 0.95; // Aalis mamaya / within 12 hours (High dispatch urgency!)
+                } elseif (in_array($sched, ['tomorrow', 'within_24h'], true)) {
+                    $trip = 0.75; // Aalis bukas / within 24 hours
+                } elseif ($truck['status'] === 'available') {
+                    $trip = 0.55; // Nakatambay sa garahe / standby
+                } elseif ($truck['status'] === 'under_maintenance') {
+                    $trip = 0.40; // Kasalukuyang nasa repair bay / in shop
+                }
             }
         }
 

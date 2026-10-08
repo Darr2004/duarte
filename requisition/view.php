@@ -529,6 +529,13 @@ if (!empty($req['truck_id']) && in_array($req['status'], ['pending', 'approved']
         <?php if (!empty($req['is_maintenance_request'])): ?>
           <span class="badge role" title="Hindi para sa trip — para ayusin ang truck">For Truck Repair</span>
         <?php endif; ?>
+        <?php if (!empty($req['dispatch_schedule']) && $req['dispatch_schedule'] === 'today'): ?>
+          <span class="badge" style="background:var(--red-tint); color:var(--red-danger); border:1px solid var(--red-border); font-size:0.75rem; font-weight:700;">⚡ Aalis Mamaya (Within 12h)</span>
+        <?php elseif (!empty($req['dispatch_schedule']) && $req['dispatch_schedule'] === 'tomorrow'): ?>
+          <span class="badge" style="background:var(--amber-tint); color:var(--amber); border:1px solid var(--amber-border); font-size:0.75rem; font-weight:600;">🗓️ Aalis Bukas (Within 24h)</span>
+        <?php elseif (!empty($req['dispatch_schedule']) && $req['dispatch_schedule'] === 'standby'): ?>
+          <span class="badge" style="background:var(--surface-subtle); color:var(--ink-soft); border:1px solid var(--line); font-size:0.75rem;">🏢 Standby sa Garahe</span>
+        <?php endif; ?>
       </div>
     </div>
     <?php endif; ?>

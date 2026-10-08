@@ -935,7 +935,7 @@ class RequisitionShortfallException extends RuntimeException {}
  * @param array $catalog_items [item_id => items row], for the item_ids in $cart
  * @return int The new requisition's id.
  */
-function submit_requisition(PDO $pdo, array $user, array $cart, array $catalog_items, ?string $purpose, ?int $truck_id = null, bool $is_maintenance_request = false): int
+function submit_requisition(PDO $pdo, array $user, array $cart, array $catalog_items, ?string $purpose, ?int $truck_id = null, bool $is_maintenance_request = false, string $dispatch_schedule = 'standby'): int
 {
     $auto_approve = !requisition_needs_supervisor_approval($user);
 
@@ -946,11 +946,16 @@ function submit_requisition(PDO $pdo, array $user, array $cart, array $catalog_i
         $truck_plate = $tstmt->fetch()['plate_number'] ?? null;
     }
 
+    $valid_scheds = ['today', 'tomorrow', 'standby'];
+    if (!in_array($dispatch_schedule, $valid_scheds, true)) {
+        $dispatch_schedule = 'standby';
+    }
+
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare(
-            'INSERT INTO requisitions (requester_id, purpose, truck_id, truck_plate_snapshot, is_maintenance_request)
-             VALUES (:uid, :purpose, :truck_id, :plate, :is_maint)'
+            'INSERT INTO requisitions (requester_id, purpose, truck_id, truck_plate_snapshot, is_maintenance_request, dispatch_schedule)
+             VALUES (:uid, :purpose, :truck_id, :plate, :is_maint, :sched)'
         );
         $stmt->execute([
             'uid'      => $user['id'],
@@ -958,6 +963,7 @@ function submit_requisition(PDO $pdo, array $user, array $cart, array $catalog_i
             'truck_id' => $truck_id,
             'plate'    => $truck_plate,
             'is_maint' => $is_maintenance_request ? 1 : 0,
+            'sched'    => $dispatch_schedule,
         ]);
         $requisition_id = (int)$pdo->lastInsertId();
 

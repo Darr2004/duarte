@@ -882,21 +882,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $pdo->beginTransaction();
     try {
+        $dispatch_schedule = trim($input['dispatch_schedule'] ?? 'standby');
+        if (!in_array($dispatch_schedule, ['today', 'tomorrow', 'standby'], true)) {
+            $dispatch_schedule = 'standby';
+        }
+
         $urgent_reason = $is_urgent ? ($purpose ?: 'Urgent request filed from mobile application') : null;
         $urgent_by = $is_urgent ? $user_id : null;
         $urgent_at = $is_urgent ? date('Y-m-d H:i:s') : null;
 
         $stmt = $pdo->prepare("
             INSERT INTO requisitions 
-                (requester_id, truck_id, truck_plate_snapshot, is_maintenance_request, purpose, manual_urgent, 
+                (requester_id, truck_id, truck_plate_snapshot, is_maintenance_request, dispatch_schedule, purpose, manual_urgent, 
                  manual_urgent_reason, manual_urgent_by, manual_urgent_at, qr_token, status)
-            VALUES (:uid, :tid, :plate, :is_maint, :purpose, :urgent, :urgent_reason, :urgent_by, :urgent_at, NULL, 'pending')
+            VALUES (:uid, :tid, :plate, :is_maint, :sched, :purpose, :urgent, :urgent_reason, :urgent_by, :urgent_at, NULL, 'pending')
         ");
         $stmt->execute([
             'uid'           => $user_id,
             'tid'           => $truck_id,
             'plate'         => $truck_plate,
             'is_maint'      => $is_maintenance_request,
+            'sched'         => $dispatch_schedule,
             'purpose'       => $purpose ?: null,
             'urgent'        => $is_urgent,
             'urgent_reason' => $urgent_reason,

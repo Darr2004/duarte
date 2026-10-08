@@ -101,7 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$errors) {
                 try {
-                    $requisition_id = submit_requisition($pdo, $user, $cart, $catalog_items, $purpose, $truck_id, $is_maintenance_request);
+                    $dispatch_schedule = trim($_POST['dispatch_schedule'] ?? 'standby');
+                    $requisition_id = submit_requisition($pdo, $user, $cart, $catalog_items, $purpose, $truck_id, $is_maintenance_request, $dispatch_schedule);
                     cart_clear();
 
                     if (requisition_needs_supervisor_approval($user)) {
@@ -324,6 +325,26 @@ require __DIR__ . '/../includes/header.php';
             </div>
 
             <div id="maintReqAlert" style="margin-top:0.6rem; font-size:0.8rem; display:none; padding:0.5rem 0.7rem; border-radius:6px;"></div>
+          </div>
+
+          <div style="margin-top:0.85rem; padding:0.85rem; border-radius:8px; background:var(--surface-subtle); border:1px solid var(--line);">
+            <div style="font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-bottom:0.55rem;">
+              Oras ng Alis / Schedule ng Biyahe (MCDA Trip Urgency)
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:0.5rem;">
+              <label style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem 0.7rem; border-radius:6px; border:1px solid var(--line); background:var(--surface); cursor:pointer;">
+                <input type="radio" name="dispatch_schedule" value="today" <?= (isset($_POST['dispatch_schedule']) && $_POST['dispatch_schedule'] === 'today') ? 'checked' : '' ?>>
+                <span style="font-size:0.85rem; font-weight:600; color:var(--red-danger, #94382C);">⚡ Aalis Mamaya (Within 12h)</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem 0.7rem; border-radius:6px; border:1px solid var(--line); background:var(--surface); cursor:pointer;">
+                <input type="radio" name="dispatch_schedule" value="tomorrow" <?= (isset($_POST['dispatch_schedule']) && $_POST['dispatch_schedule'] === 'tomorrow') ? 'checked' : '' ?>>
+                <span style="font-size:0.85rem; font-weight:600; color:var(--amber, #8C5A32);">🗓️ Aalis Bukas (Within 24h)</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem 0.7rem; border-radius:6px; border:1px solid var(--line); background:var(--surface); cursor:pointer;">
+                <input type="radio" name="dispatch_schedule" value="standby" <?= (!isset($_POST['dispatch_schedule']) || $_POST['dispatch_schedule'] === 'standby') ? 'checked' : '' ?>>
+                <span style="font-size:0.85rem; font-weight:600; color:var(--ink-soft);">🏢 Standby sa Garahe</span>
+              </label>
+            </div>
           </div>
         </div>
 

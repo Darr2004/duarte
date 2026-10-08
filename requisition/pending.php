@@ -103,6 +103,15 @@ require __DIR__ . '/../includes/header.php';
               <?php if (!empty($r['truck_plate_snapshot'])): ?>
                 <?= truck_plate_badge($r['truck_plate_snapshot']) ?>
               <?php endif; ?>
+              <?php if (!empty($r['dispatch_schedule']) && $r['dispatch_schedule'] === 'today'): ?>
+                <span class="badge" style="background:var(--red-tint); color:var(--red-danger); border:1px solid var(--red-border); font-size:0.75rem; font-weight:700;" title="Aalis ngayong araw / within 12 hours">
+                  ⚡ Aalis Mamaya
+                </span>
+              <?php elseif (!empty($r['dispatch_schedule']) && $r['dispatch_schedule'] === 'tomorrow'): ?>
+                <span class="badge" style="background:var(--amber-tint); color:var(--amber); border:1px solid var(--amber-border); font-size:0.75rem; font-weight:600;" title="Aalis bukas / within 24 hours">
+                  🗓️ Aalis Bukas
+                </span>
+              <?php endif; ?>
               <?php if (!empty($r['is_maintenance_request'])): ?>
                 <span class="badge" style="background:var(--blue-tint); color:var(--blue-info); border:1px solid var(--blue-border); font-size:0.75rem; font-weight:600;" title="Requisition para sa pyesa o pagkukumpuni ng sasakyan">
                   🔧 Pyesa / Repair
@@ -189,7 +198,7 @@ require __DIR__ . '/../includes/header.php';
             <div id="pmDemandBar" style="height:100%; background:var(--blue-info); width:0%; transition:width 0.4s ease;"></div>
           </div>
           <div style="font-size:0.75rem; color:var(--ink-soft);">
-            Kahalagahan ng biyahe (nasiraan sa biyahe/on-trip, nakatakdang delivery dispatch, o nakatambay).
+            Kahalagahan ng biyahe (nasiraan sa kalsada/on-trip, aalis mamaya o bukas, o nakatambay sa garahe).
           </div>
         </div>
 
