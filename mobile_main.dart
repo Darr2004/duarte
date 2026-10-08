@@ -575,8 +575,8 @@ final globalNotifications = NotificationsNotifier();
 // In-App Auto-Update Manager (One-Click App Updates)
 // ---------------------------------------------------------
 class AppUpdateChecker {
-  static const int currentVersionCode = 15;
-  static const String currentVersionName = '1.3.0';
+  static const int currentVersionCode = 16;
+  static const String currentVersionName = '1.3.1';
   static const MethodChannel _channel = MethodChannel('com.duarte.duarte_app/updater');
 
   static bool _hasPromptedThisSession = false;
