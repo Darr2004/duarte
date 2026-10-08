@@ -11,10 +11,10 @@ if "%ERRORLEVEL%"=="0" (
     echo [OK] BUHAY AT ONLINE NA PO ANG TUNNEL MO!
     echo.
     echo Permanent Web URL:
-    echo   https://outshine-aroma-angles.ngrok-free.dev/duarte/
+    echo   https://spruce-trapdoor-unsorted.ngrok-free.dev/duarte/
     echo.
     echo Mobile API URL:
-    echo   https://outshine-aroma-angles.ngrok-free.dev/duarte/api
+    echo   https://spruce-trapdoor-unsorted.ngrok-free.dev/duarte/api
     echo.
     echo ========================================================
     echo Gumagana na ito sa background! Pwede mo na itong gamitin agad.
@@ -39,11 +39,11 @@ if "%ERRORLEVEL%" NEQ "0" (
     echo.
 )
 echo Nagsisimula ang bagong tunnel...
-echo Permanent Web URL: https://outshine-aroma-angles.ngrok-free.dev/duarte/
-echo Mobile API URL:   https://outshine-aroma-angles.ngrok-free.dev/duarte/api
+echo Permanent Web URL: https://spruce-trapdoor-unsorted.ngrok-free.dev/duarte/
+echo Mobile API URL:   https://spruce-trapdoor-unsorted.ngrok-free.dev/duarte/api
 echo.
 echo Huwag isara ang window na ito habang ginagamit ang system sa labas.
 echo ========================================================
 echo.
-ngrok http --url=https://outshine-aroma-angles.ngrok-free.dev 127.0.0.1:80
+ngrok http --url=https://spruce-trapdoor-unsorted.ngrok-free.dev 127.0.0.1:80
 pause

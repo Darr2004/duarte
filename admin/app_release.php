@@ -136,25 +136,25 @@ $flash_error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_check($_POST['csrf_token'] ?? null)) {
-        $flash_error = 'Nag-expire ang inyong session. Pakisubukan muli.';
+        $flash_error = 'Your session has expired. Please try again.';
     } else {
         $action = $_POST['action'] ?? '';
 
         if ($action === 'upload_apk') {
             $ver = trim($_POST['version_name'] ?? '');
             $code = (int)($_POST['version_code'] ?? ($current_code + 1));
-            $title = trim($_POST['release_title'] ?? 'Bagong Update ng DuaRTE');
+            $title = trim($_POST['release_title'] ?? 'DuaRTE Mobile Update');
             $notes = trim($_POST['release_notes'] ?? '');
 
             if (empty($ver) || !preg_match('/^[0-9.]+$/', $ver)) {
-                $flash_error = 'Maling format ng version name. Halimbawa: 1.2.8';
+                $flash_error = 'Invalid version name format. Example: 1.3.1';
             } elseif (empty($_FILES['apk_file']['tmp_name']) || $_FILES['apk_file']['error'] !== UPLOAD_ERR_OK) {
-                $flash_error = 'Pumili ng wastong APK file na i-u-upload.';
+                $flash_error = 'Please select a valid APK file to upload.';
             } else {
                 $origName = $_FILES['apk_file']['name'];
                 $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
                 if ($ext !== 'apk') {
-                    $flash_error = 'APK file lamang (.apk) ang maaaring i-upload.';
+                    $flash_error = 'Only Android APK files (.apk) are accepted.';
                 } else {
                     if (move_uploaded_file($_FILES['apk_file']['tmp_name'], $apk_path)) {
                         @copy($apk_path, __DIR__ . "/../duarte-app-v{$ver}.apk");
@@ -168,29 +168,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             file_put_contents($version_file, $newVersionPhp);
 
                             log_audit_event($pdo, $me, 'apk_published', 'system', null, "Uploaded and published DuaRTE APK v{$ver} (Build {$code}) to Cloud CDN.");
-                            $flash_success = "Matagumpay na nai-upload at nai-publish ang APK v{$ver} sa Cloud CDN! Awtomatiko nang makakatanggap ng update ang mga mobile devices.";
+                            $flash_success = "APK v{$ver} published successfully to Cloud CDN. Mobile devices will automatically receive this update.";
                             $current_version = $ver;
                             $current_code = $code;
                             $current_title = $title;
                             $current_notes = $notes;
                         } else {
-                            $flash_error = 'Na-save ang local file ngunit nagka-error sa CDN upload: ' . $pubRes['error'];
+                            $flash_error = 'Local file saved, but CDN upload failed: ' . $pubRes['error'];
                         }
                     } else {
-                        $flash_error = 'Hindi mai-save ang na-upload na APK sa server.';
+                        $flash_error = 'Failed to save uploaded APK to the server.';
                     }
                 }
             }
         } elseif ($action === 'sync_local') {
             if (!file_exists($apk_path)) {
-                $flash_error = 'Walang nakitang duarte-app.apk sa server. Mag-build muna o mag-upload.';
+                $flash_error = 'No duarte-app.apk found on server. Please build or upload first.';
             } else {
                 $pubRes = publish_apk_to_github_cdn($apk_path, $current_version, $current_notes);
                 if ($pubRes['success']) {
                     log_audit_event($pdo, $me, 'apk_synced', 'system', null, "Re-synced local APK v{$current_version} to Cloud CDN.");
-                    $flash_success = "Matagumpay na nai-sync ang kasalukuyang duarte-app.apk sa Cloud CDN! Ready na para sa lahat ng tauhan.";
+                    $flash_success = "Current duarte-app.apk synced successfully to Cloud CDN.";
                 } else {
-                    $flash_error = 'Nagka-error sa pag-sync sa CDN: ' . $pubRes['error'];
+                    $flash_error = 'CDN synchronization error: ' . $pubRes['error'];
                 }
             }
         }
@@ -201,11 +201,12 @@ $page_title = 'Mobile App Releases';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="content-wrapper">
+<div class="content-wrapper" style="max-width: 1100px; margin: 0 auto; padding: 20px 16px;">
   <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:24px;">
     <div>
-      <h1 style="margin:0; font-size:24px; font-weight:700;">Mobile App Management</h1>
-      <p style="margin:4px 0 0; color:var(--ink-soft); font-size:14px;">Direktang pag-upload, pag-update, at pag-publish ng DuaRTE Android APK para sa mga field personnel.</p>
+      <div style="font-size: 0.82rem; color: var(--ink-soft, #7A6A58); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Deployment Governance</div>
+      <h1 style="margin:4px 0 0; font-size:24px; font-weight:700; color:var(--ink, #1F1710);">Mobile App Release Management</h1>
+      <p style="margin:4px 0 0; color:var(--ink-soft); font-size:14px;">Distribute official Android APK binaries across fleet operations via high-speed Cloud CDN.</p>
     </div>
   </div>
 
@@ -227,31 +228,31 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Active Version Card -->
     <div class="card" style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <span style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--amber); background:var(--amber-tint); padding:4px 8px; border-radius:4px;">Aktibong Bersyon</span>
-        <span style="font-size:13px; color:var(--ink-soft);"><?= file_exists($apk_path) ? round(filesize($apk_path)/1024/1024, 1) . ' MB' : '0 MB' ?></span>
+        <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--amber, #8C5A32); background:var(--amber-tint, #FAF4EB); border:1px solid var(--amber-border, #EDDCBE); padding:3px 8px; border-radius:4px;">ACTIVE VERSION</span>
+        <span style="font-size:13px; font-weight:600; color:var(--ink-soft);"><?= file_exists($apk_path) ? round(filesize($apk_path)/1024/1024, 1) . ' MB' : '0 MB' ?></span>
       </div>
       <h2 style="margin:0 0 6px; font-size:28px; font-weight:800; color:var(--ink);">v<?= h($current_version) ?> <span style="font-size:14px; font-weight:500; color:var(--ink-soft);">(Build <?= $current_code ?>)</span></h2>
       <p style="margin:0 0 16px; font-size:14px; color:var(--ink-soft);"><?= h($current_title) ?></p>
 
       <div style="background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:14px; margin-bottom:18px;">
-        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--ink-light); margin-bottom:6px;">Direct CDN Download Link</div>
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--ink-light); margin-bottom:6px;">CDN Distribution Link</div>
         <div style="display:flex; gap:8px;">
           <input type="text" id="cdnLinkInput" readonly value="https://github.com/Darr2004/duarte/releases/download/v<?= h($current_version) ?>/duarte-app.apk" style="flex:1; padding:8px 12px; font-size:12px; font-family:monospace; background:#fff; border:1px solid var(--line); border-radius:6px;">
-          <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('cdnLinkInput').value); alert('Kopyado ang download link!');" class="btn btn-secondary" style="padding:8px 14px; font-size:12px; cursor:pointer;">Kopyahin</button>
+          <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('cdnLinkInput').value); alert('CDN download link copied to clipboard!');" class="btn btn-secondary" style="padding:8px 14px; font-size:12px; cursor:pointer;">Copy</button>
         </div>
       </div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <a href="https://github.com/Darr2004/duarte/releases/download/v<?= h($current_version) ?>/duarte-app.apk" target="_blank" class="btn btn-primary" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; padding:10px 16px; border-radius:6px; font-weight:600; font-size:14px; text-align:center;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          I-download APK
+          Download APK
         </a>
         <form method="POST" style="margin:0;">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="sync_local">
-          <button type="submit" onclick="return confirm('I-sync ang kasalukuyang duarte-app.apk sa Cloud CDN?');" class="btn btn-secondary" style="padding:10px 16px; border-radius:6px; font-weight:600; font-size:14px; display:flex; align-items:center; gap:6px; cursor:pointer;" title="Re-sync current build to CDN">
+          <button type="submit" onclick="return confirm('Synchronize current local duarte-app.apk to Cloud CDN?');" class="btn btn-secondary" style="padding:10px 16px; border-radius:6px; font-weight:600; font-size:14px; display:flex; align-items:center; gap:6px; cursor:pointer;" title="Re-sync current build to CDN">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            I-sync sa CDN
+            Sync CDN
           </button>
         </form>
       </div>
@@ -259,21 +260,21 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- QR Code Card for Instant Phone Scanning -->
     <div class="card" style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; align-items:center; text-align:center;">
-      <span style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); margin-bottom:12px;">I-scan Gamit ang Phone Camera</span>
+      <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); margin-bottom:12px;">Mobile Device Direct Scan</span>
       <div style="background:#fff; padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:14px;">
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=<?= urlencode('https://github.com/Darr2004/duarte/releases/download/v' . $current_version . '/duarte-app.apk') ?>" alt="QR Code for APK" style="width:160px; height:160px; display:block;">
       </div>
-      <p style="margin:0; font-size:13px; color:var(--ink-soft); max-width:240px;">
-        Itapat lang ang camera ng cellphone ng driver o staff para ma-download agad ang bagong installer nang libre.
+      <p style="margin:0; font-size:13px; color:var(--ink-soft); max-width:260px;">
+        Scan with mobile camera to install the latest build directly to device with zero server bandwidth.
       </p>
     </div>
   </div>
 
   <!-- Direct Upload Form -->
   <div class="card" style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:28px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-    <h3 style="margin:0 0 8px; font-size:18px; font-weight:700; color:var(--ink);">Mag-upload at Mag-publish ng Bagong Bersyon</h3>
+    <h3 style="margin:0 0 6px; font-size:18px; font-weight:700; color:var(--ink);">Publish Production Release</h3>
     <p style="margin:0 0 24px; font-size:14px; color:var(--ink-soft);">
-      Kapag may bagong `.apk` file na natapos buuin, i-upload ito rito. Awtomatiko itong ipapasa sa Cloud CDN at aabisuhan ang lahat ng mobile devices.
+      Upload a newly compiled APK binary to distribute to the field via GitHub Cloud CDN.
     </p>
 
     <form method="POST" enctype="multipart/form-data">
@@ -283,37 +284,33 @@ require_once __DIR__ . '/../includes/header.php';
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:20px; margin-bottom:20px;">
         <div>
           <label style="display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px;">Version Name</label>
-          <input type="text" name="version_name" value="<?= h(preg_replace_callback('/(\d+)$/', fn($m) => $m[1]+1, $current_version)) ?>" required placeholder="hal. 1.2.8" style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:6px; font-size:14px;">
-          <small style="color:var(--ink-light); font-size:12px;">Makikita ng mga tauhan sa app.</small>
+          <input type="text" name="version_name" value="<?= h(preg_replace_callback('/(\d+)$/', fn($m) => $m[1]+1, $current_version)) ?>" required placeholder="e.g. 1.3.1" style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:6px; font-size:14px;">
         </div>
 
         <div>
           <label style="display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px;">Build Code</label>
           <input type="number" name="version_code" value="<?= $current_code + 1 ?>" required style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:6px; font-size:14px;">
-          <small style="color:var(--ink-light); font-size:12px;">Dapat mas mataas sa kasalukuyang code (<?= $current_code ?>).</small>
         </div>
 
         <div>
           <label style="display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px;">Release Title</label>
-          <input type="text" name="release_title" value="Bagong Update ng DuaRTE" required style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:6px; font-size:14px;">
-          <small style="color:var(--ink-light); font-size:12px;">Pamagat ng abiso sa mobile.</small>
+          <input type="text" name="release_title" value="DuaRTE Logistics Mobile Update" required style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:6px; font-size:14px;">
         </div>
       </div>
 
       <div style="margin-bottom:20px;">
-        <label style="display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px;">Release Notes (Mga Pagbabago)</label>
-        <textarea name="release_notes" rows="3" style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:6px; font-size:14px; font-family:inherit;">• Inayos ang mga bug at pinabilis ang operasyon</textarea>
+        <label style="display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px;">Release Notes</label>
+        <textarea name="release_notes" rows="3" style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:6px; font-size:14px; font-family:inherit;">• System optimizations and priority workflow enhancements</textarea>
       </div>
 
       <div style="margin-bottom:24px;">
-        <label style="display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px;">Piliin ang APK File (.apk)</label>
+        <label style="display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:6px;">Select APK Binary (.apk)</label>
         <input type="file" name="apk_file" accept=".apk" required style="display:block; width:100%; padding:12px; border:2px dashed var(--line); border-radius:8px; background:var(--paper); cursor:pointer;">
-        <small style="color:var(--ink-light); font-size:12px; margin-top:4px; display:block;">Piliin ang `app-release.apk` o `duarte-app.apk` mula sa iyong computer.</small>
       </div>
 
       <button type="submit" class="btn btn-primary" style="padding:12px 24px; font-size:15px; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; gap:10px; cursor:pointer;">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        I-upload at I-publish sa Cloud CDN
+        Upload &amp; Publish Release
       </button>
     </form>
   </div>

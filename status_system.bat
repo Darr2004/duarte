@@ -13,8 +13,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 
 echo.
 echo ========================================================
-echo Web Admin:  https://outshine-aroma-angles.ngrok-free.dev/duarte/
-echo Mobile API: https://outshine-aroma-angles.ngrok-free.dev/duarte/api
+echo Web Admin:  https://spruce-trapdoor-unsorted.ngrok-free.dev/duarte/
+echo Mobile API: https://spruce-trapdoor-unsorted.ngrok-free.dev/duarte/api
 echo ========================================================
 echo.
 pause

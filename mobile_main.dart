@@ -575,8 +575,8 @@ final globalNotifications = NotificationsNotifier();
 // In-App Auto-Update Manager (One-Click App Updates)
 // ---------------------------------------------------------
 class AppUpdateChecker {
-  static const int currentVersionCode = 12;
-  static const String currentVersionName = '1.2.7';
+  static const int currentVersionCode = 15;
+  static const String currentVersionName = '1.3.0';
   static const MethodChannel _channel = MethodChannel('com.duarte.duarte_app/updater');
 
   static bool _hasPromptedThisSession = false;
@@ -2499,29 +2499,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Center(
-                            child: Container(
-                              width: 76,
-                              height: 76,
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
+                            child: GestureDetector(
+                              onLongPress: () {
+                                HapticFeedback.heavyImpact();
+                                _showSettingsDialog();
+                              },
+                              child: Container(
+                                width: 76,
+                                height: 76,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                  border: Border.all(color: AppColors.line),
+                                ),
+                                child: Image.asset(
+                                  'assets/images/logo.png',
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (ctx, err, stack) => const Icon(
+                                    Icons.local_shipping_rounded,
+                                    size: 40,
+                                    color: AppColors.amber,
                                   ),
-                                ],
-                                border: Border.all(color: AppColors.line),
-                              ),
-                              child: Image.asset(
-                                'assets/images/logo.png',
-                                fit: BoxFit.contain,
-                                errorBuilder: (ctx, err, stack) => const Icon(
-                                  Icons.local_shipping_rounded,
-                                  size: 40,
-                                  color: AppColors.amber,
                                 ),
                               ),
                             ),
@@ -2630,16 +2636,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.6),
                                   ),
                           ),
-                          const SizedBox(height: 16),
-
-                          Center(
-                            child: TextButton.icon(
-                              onPressed: _showSettingsDialog,
-                              icon: const Icon(Icons.settings_outlined, size: 16, color: AppColors.inkSoft),
-                              label: Text(globalLanguage.t('server_settings'), style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft)),
-                            ),
-                          ),
-                        ],
+                            ],
                       ),
                     ),
                   ),
@@ -6966,8 +6963,8 @@ class _SupervisorApprovalsScreenState extends State<SupervisorApprovalsScreen> {
                                 Expanded(
                                   child: Text(
                                     globalLanguage.choice(
-                                      'MCDA Batayan: 📦 Stock $priorityStock% • 🚨 Demand $priorityDemand% • 🤝 Pagsasauli $priorityTrust%',
-                                      'MCDA Factors: 📦 Stock $priorityStock% • 🚨 Demand $priorityDemand% • 🤝 Return Trust $priorityTrust%',
+                                      'MCDA Batayan: 🚨 Sira $priorityStock% • 🚛 Biyahe $priorityDemand% • 🤝 Driver $priorityTrust%',
+                                      'MCDA Factors: 🚨 Defect $priorityStock% • 🚛 Trip $priorityDemand% • 🤝 Driver $priorityTrust%',
                                     ),
                                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.ink),
                                   ),
@@ -7223,6 +7220,601 @@ class _FleetTrucksScreenState extends State<FleetTrucksScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['error'] ?? data['message'] ?? 'Failed to update truck status.'),
+            backgroundColor: AppColors.redDanger,
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Server connection error.'), backgroundColor: AppColors.redDanger),
+      );
+    }
+  }
+
+  void _showReportComplaintModal({Map<String, dynamic>? preselectedTruck}) {
+    Map<String, dynamic>? currentTruck = preselectedTruck ?? (_trucks.isNotEmpty ? _trucks.first : null);
+    String selectedCategory = 'electrical';
+    String selectedUrgency = 'high';
+    bool setMaintenance = true;
+    final complaintCtrl = TextEditingController();
+    bool isSubmitting = false;
+
+    final categories = [
+      {'key': 'electrical', 'icon': Icons.bolt, 'tl': 'Electrical (Starter, Battery, Ilaw)', 'en': 'Electrical (Starter, Battery, Lights)'},
+      {'key': 'engine', 'icon': Icons.speed, 'tl': 'Makina / Engine (Overheat, Langis)', 'en': 'Engine (Overheating, Oil, Filter)'},
+      {'key': 'brakes_chassis', 'icon': Icons.adjust, 'tl': 'Preno at Chassis (Air Leak, Gulong)', 'en': 'Brakes & Chassis (Air Leak, Tires)'},
+      {'key': 'body_glass', 'icon': Icons.car_repair, 'tl': 'Body, Salamin at Wiper', 'en': 'Body, Glass & Wipers'},
+      {'key': 'other', 'icon': Icons.build, 'tl': 'Iba pa (General Defect)', 'en': 'Other (General Defect)'},
+    ];
+
+    final quickChips = [
+      'STARTIC REALY (Starter Relay)',
+      'Ayaw Mag-start',
+      'Overheating Makina',
+      'Mahina Preno / Air Leak',
+      'Low Engine Oil',
+      'Alternator / Battery Drain',
+      'Pudpod / Flat Gulong',
+      'Basag Salamin / Sidemirror',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (modalCtx, setModalState) {
+          return Container(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(modalCtx).size.height * 0.90),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(modalCtx).viewInsets.bottom + 20),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: AppColors.lineStrong, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.amberTint,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.report_problem_rounded, color: AppColors.amber, size: 22),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              globalLanguage.choice('I-report ang Sira ng Sasakyan', 'Report Vehicle Complaint'),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.ink),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              globalLanguage.choice('Complaints Checklist • Konektado sa MCDA Urgency', 'Defects Checklist • Tied to MCDA Urgency'),
+                              style: const TextStyle(fontSize: 11, color: AppColors.inkSoft),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 1. Truck Selector
+                  Text(
+                    globalLanguage.choice('Pumili ng Sasakyan / Truck:', 'Select Vehicle / Truck:'),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.inkSoft),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceSubtle,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.line),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: currentTruck != null ? (currentTruck!['id'] as num?)?.toInt() : null,
+                        isExpanded: true,
+                        hint: Text(globalLanguage.choice('Pumili ng Truck', 'Select Truck')),
+                        items: _trucks.map<DropdownMenuItem<int>>((t) {
+                          final p = t['plate_number'] ?? 'Truck';
+                          final m = t['model'] ?? '';
+                          return DropdownMenuItem<int>(
+                            value: (t['id'] as num).toInt(),
+                            child: Text(
+                              '$p — $m',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.ink),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setModalState(() {
+                              currentTruck = _trucks.firstWhere((t) => (t['id'] as num).toInt() == val, orElse: () => currentTruck!);
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 2. Category Selector
+                  Text(
+                    globalLanguage.choice('Kategorya ng Sira (Checklist):', 'Defect Category:'),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.inkSoft),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: categories.map((cat) {
+                      final isSel = selectedCategory == cat['key'];
+                      return ChoiceChip(
+                        selected: isSel,
+                        avatar: Icon(cat['icon'] as IconData, size: 14, color: isSel ? Colors.white : AppColors.amber),
+                        label: Text(
+                          globalLanguage.choice(cat['tl'] as String, cat['en'] as String),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isSel ? Colors.white : AppColors.ink,
+                          ),
+                        ),
+                        selectedColor: AppColors.amber,
+                        backgroundColor: AppColors.surfaceSubtle,
+                        onSelected: (_) => setModalState(() => selectedCategory = cat['key'] as String),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 3. Quick Chips
+                  Text(
+                    globalLanguage.choice('Madalas na Reklamo (Pindutin para mabilis):', 'Common Defects (Tap to auto-fill):'),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.inkSoft),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: quickChips.map((chip) {
+                      return InkWell(
+                        onTap: () {
+                          setModalState(() {
+                            if (complaintCtrl.text.trim().isEmpty) {
+                              complaintCtrl.text = chip;
+                            } else {
+                              complaintCtrl.text = '${complaintCtrl.text.trim()}, $chip';
+                            }
+                            if (chip.contains('REALY') || chip.contains('Starter') || chip.contains('Preno') || chip.contains('Overheat')) {
+                              selectedUrgency = 'high';
+                              setMaintenance = true;
+                            }
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceSubtle,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.line),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.add, size: 12, color: AppColors.amber),
+                              const SizedBox(width: 4),
+                              Text(chip, style: const TextStyle(fontSize: 11, color: AppColors.ink)),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 4. Complaint Description Field
+                  Text(
+                    globalLanguage.choice('Detalye ng Sira / Reklamo (Complaint):', 'Complaint Details:'),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.inkSoft),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: complaintCtrl,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: globalLanguage.choice(
+                        'Halimbawa: STARTIC REALY - hindi nag-i-start o humuhuni lang kapag pinapaandar...',
+                        'E.g. STARTER RELAY - engine will not crank, clicking noise when turning key...',
+                      ),
+                      hintStyle: const TextStyle(fontSize: 12, color: AppColors.inkLight),
+                      filled: true,
+                      fillColor: AppColors.surfaceSubtle,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.line),
+                      ),
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 5. Urgency Level Selector
+                  Text(
+                    globalLanguage.choice('Gaano ka-Urgent ang Sitwasyon (MCDA Urgency):', 'Urgency Level (MCDA Urgency):'),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.inkSoft),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setModalState(() {
+                            selectedUrgency = 'high';
+                            setMaintenance = true;
+                          }),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                            decoration: BoxDecoration(
+                              color: selectedUrgency == 'high' ? AppColors.redTint : AppColors.surfaceSubtle,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: selectedUrgency == 'high' ? AppColors.redDanger : AppColors.line),
+                            ),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.error_outline, size: 18, color: AppColors.redDanger),
+                                const SizedBox(height: 2),
+                                Text(
+                                  globalLanguage.choice('Mataas (100%)', 'High (100%)'),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: selectedUrgency == 'high' ? AppColors.redDanger : AppColors.inkSoft,
+                                  ),
+                                ),
+                                Text(
+                                  globalLanguage.choice('Tirik / Emergency', 'Breakdown'),
+                                  style: const TextStyle(fontSize: 9.5, color: AppColors.inkSoft),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setModalState(() => selectedUrgency = 'medium'),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                            decoration: BoxDecoration(
+                              color: selectedUrgency == 'medium' ? AppColors.amberTint : AppColors.surfaceSubtle,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: selectedUrgency == 'medium' ? AppColors.amber : AppColors.line),
+                            ),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.warning_amber_rounded, size: 18, color: AppColors.amber),
+                                const SizedBox(height: 2),
+                                Text(
+                                  globalLanguage.choice('Katamtaman (75%)', 'Medium (75%)'),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: selectedUrgency == 'medium' ? AppColors.amber : AppColors.inkSoft,
+                                  ),
+                                ),
+                                Text(
+                                  globalLanguage.choice('Umaandar pa', 'Operational'),
+                                  style: const TextStyle(fontSize: 9.5, color: AppColors.inkSoft),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setModalState(() => selectedUrgency = 'low'),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                            decoration: BoxDecoration(
+                              color: selectedUrgency == 'low' ? AppColors.greenTint : AppColors.surfaceSubtle,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: selectedUrgency == 'low' ? AppColors.greenOk : AppColors.line),
+                            ),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.check_circle_outline, size: 18, color: AppColors.greenOk),
+                                const SizedBox(height: 2),
+                                Text(
+                                  globalLanguage.choice('Mababa (50%)', 'Low (50%)'),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: selectedUrgency == 'low' ? AppColors.greenOk : AppColors.inkSoft,
+                                  ),
+                                ),
+                                Text(
+                                  globalLanguage.choice('Minor defect', 'Minor defect'),
+                                  style: const TextStyle(fontSize: 9.5, color: AppColors.inkSoft),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Maintenance toggle checkbox
+                  CheckboxListTile(
+                    value: setMaintenance,
+                    onChanged: (val) => setModalState(() => setMaintenance = val ?? false),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    activeColor: AppColors.amber,
+                    title: Text(
+                      globalLanguage.choice(
+                        'Ilagay agad sa "Under Maintenance" ang sasakyan',
+                        'Set truck status to "Under Maintenance" immediately',
+                      ),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.ink),
+                    ),
+                  ),
+
+                  // MCDA callout
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.amberTint,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.amberBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.insights, size: 16, color: AppColors.amber),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            globalLanguage.choice(
+                              'Ang reklamong ito ay awtomatikong mag-aangat sa MCDA Priority Score (45% Urgency) upang pabilisin ang release ng kumpuni sa warehouse.',
+                              'This complaint will immediately boost the MCDA Priority Score (45% Urgency) to expedite parts approval and release.',
+                            ),
+                            style: const TextStyle(fontSize: 11, color: AppColors.amberDim, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Submit button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.amber,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: isSubmitting
+                        ? null
+                        : () async {
+                            final text = complaintCtrl.text.trim();
+                            if (text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(globalLanguage.choice('Ilagay ang detalye ng sira.', 'Please enter complaint details.')),
+                                  backgroundColor: AppColors.redDanger,
+                                ),
+                              );
+                              return;
+                            }
+                            if (currentTruck == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(globalLanguage.choice('Pumili ng sasakyan.', 'Please select a vehicle.')),
+                                  backgroundColor: AppColors.redDanger,
+                                ),
+                              );
+                              return;
+                            }
+
+                            setModalState(() => isSubmitting = true);
+                            try {
+                              final baseUrl = await AppConfig.getBaseUrl();
+                              final res = await http.post(
+                                Uri.parse('$baseUrl/truck_complaints.php'),
+                                headers: AppConfig.authHeaders(widget.user),
+                                body: jsonEncode({
+                                  'action': 'report',
+                                  'truck_id': currentTruck!['id'],
+                                  'complaint_category': selectedCategory,
+                                  'complaint_text': text,
+                                  'urgency_level': selectedUrgency,
+                                  'set_maintenance': setMaintenance,
+                                  'user_id': widget.user['id'],
+                                  'token': widget.user['token'] ?? '',
+                                }),
+                              );
+                              final body = jsonDecode(res.body);
+                              if (res.statusCode == 200 && body['success'] == true) {
+                                if (modalCtx.mounted && Navigator.canPop(modalCtx)) {
+                                  Navigator.pop(modalCtx);
+                                }
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      globalLanguage.choice(
+                                        'Matagumpay na naitala ang reklamo para sa ${currentTruck!['plate_number']}.',
+                                        'Complaint recorded for ${currentTruck!['plate_number']}.',
+                                      ),
+                                    ),
+                                    backgroundColor: AppColors.greenOk,
+                                  ),
+                                );
+                                _fetchTrucks();
+                              } else {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(body['error'] ?? body['message'] ?? 'Failed to submit complaint.'),
+                                    backgroundColor: AppColors.redDanger,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Server connection error.'), backgroundColor: AppColors.redDanger),
+                              );
+                            }
+                            if (modalCtx.mounted) setModalState(() => isSubmitting = false);
+                          },
+                    child: isSubmitting
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text(
+                            globalLanguage.choice('I-sumite ang Reklamo', 'Submit Complaint'),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _resolveComplaintModal(Map<String, dynamic> complaint, String truckPlate) async {
+    final complaintId = complaint['id'];
+    final compText = complaint['complaint_text'] ?? '';
+    final notesCtrl = TextEditingController();
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: AppColors.greenOk, size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                globalLanguage.choice('Lutasin ang Reklamo', 'Resolve Complaint'),
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.ink, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              globalLanguage.choice(
+                'Naresolba o naayos na ba ang sirang ito sa $truckPlate?',
+                'Has this issue been resolved for $truckPlate?',
+              ),
+              style: const TextStyle(fontSize: 13, color: AppColors.inkSoft),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSubtle,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: Text(
+                compText,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.ink),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: notesCtrl,
+              maxLines: 2,
+              decoration: InputDecoration(
+                hintText: globalLanguage.choice('Opsyonal na tala (paano naayos)...', 'Optional resolution notes...'),
+                hintStyle: const TextStyle(fontSize: 12, color: AppColors.inkLight),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                contentPadding: const EdgeInsets.all(10),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(globalLanguage.t('cancel'), style: const TextStyle(color: AppColors.inkSoft)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.greenOk, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(globalLanguage.choice('Kumpirmahing Naayos', 'Confirm Resolved')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final baseUrl = await AppConfig.getBaseUrl();
+      final res = await http.post(
+        Uri.parse('$baseUrl/truck_complaints.php'),
+        headers: AppConfig.authHeaders(widget.user),
+        body: jsonEncode({
+          'action': 'resolve',
+          'complaint_id': complaintId,
+          'resolution_notes': notesCtrl.text.trim(),
+          'user_id': widget.user['id'],
+          'token': widget.user['token'] ?? '',
+        }),
+      );
+      final body = jsonDecode(res.body);
+      if (res.statusCode == 200 && body['success'] == true) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(globalLanguage.choice('Naresolba na ang reklamo.', 'Complaint marked as resolved.')),
+            backgroundColor: AppColors.greenOk,
+          ),
+        );
+        _fetchTrucks();
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(body['error'] ?? body['message'] ?? 'Failed to resolve complaint.'),
             backgroundColor: AppColors.redDanger,
           ),
         );
@@ -7895,23 +8487,181 @@ class _FleetTrucksScreenState extends State<FleetTrucksScreen> {
                             );
                           }
                         }),
+                        // ─── Active Truck Complaints / Mga Sira ───
+                        Builder(builder: (context) {
+                          final activeComplaints = (truck['active_complaints'] as List<dynamic>?) ?? [];
+                          if (activeComplaints.isNotEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.redTint,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.redBorder),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.redDanger),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              globalLanguage.choice('Mga Aktibong Sira / Reklamo', 'Active Complaints'),
+                                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.redDanger),
+                                            ),
+                                          ],
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.redDanger,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            '${activeComplaints.length}',
+                                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    ...activeComplaints.map((cRaw) {
+                                      final c = cRaw as Map<String, dynamic>;
+                                      final cText = c['complaint_text'] ?? '';
+                                      final cCat = c['complaint_category'] ?? 'other';
+                                      final cLvl = (c['urgency_level'] ?? 'medium').toString().toLowerCase();
+                                      final cUser = c['reported_by_username'] ?? '';
+
+                                      Color lvlColor = AppColors.amber;
+                                      String lvlLabel = globalLanguage.choice('Katamtaman', 'Medium');
+                                      if (cLvl == 'high') {
+                                        lvlColor = AppColors.redDanger;
+                                        lvlLabel = globalLanguage.choice('Mataas (Urgent)', 'High (Urgent)');
+                                      } else if (cLvl == 'low') {
+                                        lvlColor = AppColors.greenOk;
+                                        lvlLabel = globalLanguage.choice('Mababa', 'Low');
+                                      }
+
+                                      return Container(
+                                        margin: const EdgeInsets.only(top: 6),
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.surface,
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: AppColors.line),
+                                        ),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    cText,
+                                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.ink),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Row(
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                                        decoration: BoxDecoration(
+                                                          color: lvlColor.withOpacity(0.12),
+                                                          borderRadius: BorderRadius.circular(3),
+                                                        ),
+                                                        child: Text(
+                                                          lvlLabel,
+                                                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: lvlColor),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Text(
+                                                        '${cCat.toUpperCase()} ${cUser.isNotEmpty ? "• $cUser" : ""}',
+                                                        style: const TextStyle(fontSize: 10, color: AppColors.inkSoft),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            InkWell(
+                                              onTap: () => _resolveComplaintModal(c, plate),
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.greenTint,
+                                                  borderRadius: BorderRadius.circular(4),
+                                                  border: Border.all(color: AppColors.greenBorder),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.check_circle_outline, size: 12, color: AppColors.greenOk),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      globalLanguage.choice('Lutasin', 'Resolve'),
+                                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.greenOk),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        }),
                         const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.ink,
-                              side: const BorderSide(color: AppColors.lineStrong),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.ink,
+                                  side: const BorderSide(color: AppColors.lineStrong),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                ),
+                                icon: const Icon(Icons.swap_horiz_rounded, size: 15, color: AppColors.amber),
+                                label: Text(
+                                  globalLanguage.choice('Status', 'Status'),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                                onPressed: () => _showStatusDialog(truck),
+                              ),
                             ),
-                            icon: const Icon(Icons.swap_horiz_rounded, size: 16, color: AppColors.amber),
-                            label: Text(
-                              globalLanguage.choice('Baguhin ang Katayuan', 'Change Status'),
-                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.amber,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                ),
+                                icon: const Icon(Icons.report_problem_outlined, size: 15),
+                                label: Text(
+                                  globalLanguage.choice('Mag-report ng Sira', 'Report Defect'),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                                onPressed: () => _showReportComplaintModal(preselectedTruck: truck),
+                              ),
                             ),
-                            onPressed: () => _showStatusDialog(truck),
-                          ),
+                          ],
                         ),
                       ],
                     ),
@@ -7920,6 +8670,16 @@ class _FleetTrucksScreenState extends State<FleetTrucksScreen> {
               }),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.amber,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.warning_amber_rounded, size: 20),
+        label: Text(
+          globalLanguage.choice('Mag-ulat ng Sira', 'Report Defect'),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        onPressed: () => _showReportComplaintModal(),
       ),
     );
   }
@@ -11138,7 +11898,7 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
   // rim...), not for a trip. Sent to the server as is_maintenance_request.
   bool _isRepairRequest = false;
   String _urgency = 'routine';
-  final _purposeCtrl = TextEditingController(text: 'Routine fleet replenishment');
+  final _purposeCtrl = TextEditingController(text: '');
   bool _isSubmitting = false;
   String? _validationError;
   bool get isOfficeStaff => (widget.user['position'] ?? '').toString().toLowerCase() == 'office_staff';
@@ -11165,7 +11925,7 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
       _validationError = null;
     });
 
-    final isUrgent = (_urgency == 'urgent' || _urgency == 'breakdown') ? 1 : 0;
+    final isUrgent = (_urgency == 'emergency' || _urgency == 'urgent' || _urgency == 'breakdown') ? 1 : 0;
     final payloadItems = cartItems.map((c) => c.toJson()).toList();
 
     final reqPayload = {
@@ -11569,15 +12329,34 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
                     const SizedBox(height: 12),
                   ],
 
-                  // Urgency
+                  // Urgency Level aligned with Complaints Matrix
                   Text(globalLanguage.choice('Lebel ng Pangangailangan', 'Urgency Level'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.ink)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: _urgency,
+                    isExpanded: true,
                     items: [
-                      DropdownMenuItem(value: 'routine', child: Text(globalLanguage.choice('Routine / Nakaiskedyul na Pagpapalit', 'Routine / Scheduled Replacement'))),
-                      DropdownMenuItem(value: 'urgent', child: Text(globalLanguage.choice('Urgent / Paalis na Biyahe', 'Urgent Operation (Trip Departure)'))),
-                      DropdownMenuItem(value: 'breakdown', child: Text(globalLanguage.choice('Kritikal / Emergency Nasiraan sa Daan', 'Critical / Emergency Road Breakdown'))),
+                      DropdownMenuItem(
+                        value: 'emergency',
+                        child: Text(
+                          globalLanguage.choice('🔴 Emergency / High (Nagpapatirik sa Sasakyan)', '🔴 Emergency / High (Critical Breakdown)'),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'medium',
+                        child: Text(
+                          globalLanguage.choice('🟡 Medium (May Diperensya ngunit Umaandar)', '🟡 Medium (Defective but Operational)'),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'routine',
+                        child: Text(
+                          globalLanguage.choice('🟢 Routine / Low (Preventive Maintenance & PMS)', '🟢 Routine / Low (Scheduled Service & PMS)'),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                     onChanged: (val) {
                       if (val != null) setState(() => _urgency = val);
@@ -11585,67 +12364,34 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Purpose / Reason presets & input
+                  // Purpose / Complaints presets & input
                   Text(
-                    globalLanguage.isTagalog ? 'Layunin / Dahilan ng Pag-request:' : 'Purpose / Request Reason:',
+                    globalLanguage.choice('Dahilan / Reklamo ng Sasakyan (1-Tap Auto Fill):', 'Vehicle Complaint / Reason (1-Tap Auto Fill):'),
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.ink),
                   ),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
-                    runSpacing: 5,
+                    runSpacing: 6,
                     children: [
-                      globalLanguage.isTagalog ? 'Delivery Run / Biyahe' : 'Delivery Run / Trip',
-                      globalLanguage.isTagalog ? 'Routine PMS / Change Oil' : 'Routine Maintenance (PMS)',
-                      globalLanguage.isTagalog ? 'Emergency Nasiraan sa Daan' : 'Emergency Breakdown Repair',
-                      globalLanguage.isTagalog ? 'Site Work / Unloading' : 'Project Site Operations',
-                      globalLanguage.isTagalog ? 'Restock Truck Supplies' : 'Restock Truck Supplies',
-                      globalLanguage.isTagalog ? 'Iba pa (Custom)' : 'Other (Custom)',
-                    ].map((r) {
-                      final isCustom = r.startsWith('Iba pa') || r.startsWith('Other');
-                      final isSelected = isCustom
-                          ? (_purposeCtrl.text.isNotEmpty && ![
-                              'Delivery Run / Biyahe',
-                              'Delivery Run / Trip',
-                              'Routine PMS / Change Oil',
-                              'Routine Maintenance (PMS)',
-                              'Emergency Nasiraan sa Daan',
-                              'Emergency Breakdown Repair',
-                              'Site Work / Unloading',
-                              'Project Site Operations',
-                              'Restock Truck Supplies',
-                              'Routine fleet replenishment',
-                            ].contains(_purposeCtrl.text))
-                          : _purposeCtrl.text == r;
-                      return InkWell(
-                        onTap: () {
-                          setState(() {
-                            if (isCustom) {
-                              _purposeCtrl.text = '';
-                            } else {
-                              _purposeCtrl.text = r;
-                            }
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.amberTint : AppColors.surfaceSubtle,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: isSelected ? AppColors.amber : AppColors.line),
-                          ),
-                          child: Text(
-                            r,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? AppColors.amber : AppColors.inkSoft,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                      // Emergency
+                      _buildPresetChip('🔴 Starter Relay (Ayaw Umandar)', 'Starter Relay / Ayaw Umandar ang Truck', 'emergency', true),
+                      _buildPresetChip('🔴 Tirik sa Kalsada', 'Emergency Tirik sa Kalsada', 'emergency', true),
+                      _buildPresetChip('🔴 Sira ang Preno', 'Sira ang Preno / Brake Failure', 'emergency', true),
+                      _buildPresetChip('🔴 Overheating / Usok', 'Overheating / Usok sa Makina', 'emergency', true),
+                      // Medium
+                      _buildPresetChip('🟡 Alternator / Low Battery', 'Alternator / Low Battery / Battery Drain', 'medium', true),
+                      _buildPresetChip('🟡 Pudpod na Gulong / Flat', 'Pudpod na Gulong / Flat Tire', 'medium', true),
+                      _buildPresetChip('🟡 Tagas Langis / Tubig', 'Tagas ng Langis o Tubig Radiator', 'medium', true),
+                      _buildPresetChip('🟡 Suspension / Kalampag', 'Pang-ilalim / Maingay na Suspension', 'medium', true),
+                      // Routine
+                      _buildPresetChip('🟢 Change Oil / PMS', 'Change Oil / Regular PMS', 'routine', true),
+                      _buildPresetChip('🟢 Wiper / Basag Salamin', 'Palit Wiper / Basag Salamin', 'routine', true),
+                      _buildPresetChip('🟢 Pundi ang Ilaw / Busina', 'Pundi ang Ilaw / Sira ang Busina', 'routine', true),
+                      _buildPresetChip('🟢 Gamit sa Biyahe (Hauling)', 'Delivery Run / Gamit sa Byahe', 'routine', false),
+                      // Custom
+                      _buildPresetChip('✍️ Iba pa (Custom)', '', null, null, isCustom: true),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -11670,6 +12416,76 @@ class _CartCheckoutSheetState extends State<CartCheckoutSheet> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildPresetChip(String label, String purposeText, String? urgency, bool? isRepair, {bool isCustom = false}) {
+    final isSelected = isCustom
+        ? (_purposeCtrl.text.isNotEmpty && ![
+            'Starter Relay / Ayaw Umandar ang Truck',
+            'Emergency Tirik sa Kalsada',
+            'Sira ang Preno / Brake Failure',
+            'Overheating / Usok sa Makina',
+            'Alternator / Low Battery / Battery Drain',
+            'Pudpod na Gulong / Flat Tire',
+            'Tagas ng Langis o Tubig Radiator',
+            'Pang-ilalim / Maingay na Suspension',
+            'Change Oil / Regular PMS',
+            'Palit Wiper / Basag Salamin',
+            'Pundi ang Ilaw / Sira ang Busina',
+            'Delivery Run / Gamit sa Byahe',
+          ].contains(_purposeCtrl.text))
+        : _purposeCtrl.text == purposeText;
+
+    Color chipBg = AppColors.surfaceSubtle;
+    Color chipBorder = AppColors.line;
+    Color chipText = AppColors.inkSoft;
+
+    if (isSelected) {
+      if (urgency == 'emergency') {
+        chipBg = AppColors.redTint;
+        chipBorder = AppColors.redDanger;
+        chipText = AppColors.redDanger;
+      } else if (urgency == 'medium') {
+        chipBg = AppColors.amberTint;
+        chipBorder = AppColors.amber;
+        chipText = AppColors.amberDim;
+      } else {
+        chipBg = AppColors.blueTint;
+        chipBorder = AppColors.blueInfo;
+        chipText = AppColors.blueInfo;
+      }
+    }
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          if (isCustom) {
+            _purposeCtrl.text = '';
+          } else {
+            _purposeCtrl.text = purposeText;
+            if (urgency != null) _urgency = urgency;
+            if (isRepair != null) _isRepairRequest = isRepair;
+          }
+        });
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5.5),
+        decoration: BoxDecoration(
+          color: chipBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: chipBorder, width: isSelected ? 1.5 : 1.0),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: chipText,
+          ),
+        ),
       ),
     );
   }

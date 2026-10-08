@@ -20,3 +20,7 @@ uploads/profile/*
 # App builds
 *.apk
 !duarte-app.apk
+
+# Local agent & cookies
+.agents/
+cookies.txt

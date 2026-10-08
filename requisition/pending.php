@@ -165,7 +165,7 @@ require __DIR__ . '/../includes/header.php';
           <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.3rem;">
             <span style="font-weight:700; font-size:0.86rem; color:var(--ink); display:flex; align-items:center; gap:0.4rem;">
               <span style="width:8px; height:8px; border-radius:50%; background:var(--red-danger); display:inline-block;"></span>
-              1. 📦 Kritikal na Stock sa Bodega (45%)
+              1. 🚨 Sira ng Sasakyan / Urgency (45%)
             </span>
             <span class="mono" style="font-weight:700; font-size:0.86rem; color:var(--ink);" id="pmStockVal">0%</span>
           </div>
@@ -173,23 +173,23 @@ require __DIR__ . '/../includes/header.php';
             <div id="pmStockBar" style="height:100%; background:var(--red-danger); width:0%; transition:width 0.4s ease;"></div>
           </div>
           <div style="font-size:0.75rem; color:var(--ink-soft);">
-            Gaano kakonti ang natitirang stock sa bodega (inuuna ang mas delikadong maubusan).
+            Lala ng sira ng truck batay sa complaints (emergency breakdown tulad ng starter relay, makina vs routine).
           </div>
         </div>
 
         <div>
           <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.3rem;">
             <span style="font-weight:700; font-size:0.86rem; color:var(--ink); display:flex; align-items:center; gap:0.4rem;">
-              <span style="width:8px; height:8px; border-radius:50%; background:var(--amber); display:inline-block;"></span>
-              2. 🚨 Demand at Urgency ng Biyahe (35%)
+              <span style="width:8px; height:8px; border-radius:50%; background:var(--blue-info); display:inline-block;"></span>
+              2. 🚛 Schedule ng Biyahe / Trip (35%)
             </span>
             <span class="mono" style="font-weight:700; font-size:0.86rem; color:var(--ink);" id="pmDemandVal">0%</span>
           </div>
           <div style="height:6px; background:var(--surface-subtle); border-radius:4px; overflow:hidden; margin-bottom:0.25rem; border:1px solid var(--line);">
-            <div id="pmDemandBar" style="height:100%; background:var(--amber); width:0%; transition:width 0.4s ease;"></div>
+            <div id="pmDemandBar" style="height:100%; background:var(--blue-info); width:0%; transition:width 0.4s ease;"></div>
           </div>
           <div style="font-size:0.75rem; color:var(--ink-soft);">
-            Ilan ang sabay-sabay na nangangailangan ng kagamitang ito para sa operasyon ng kumpanya.
+            Kahalagahan ng biyahe (nasiraan sa biyahe/on-trip, nakatakdang delivery dispatch, o nakatambay).
           </div>
         </div>
 

@@ -73,8 +73,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     ");
     $trucks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Fetch active complaints grouped by truck
+    $complaints_by_truck = [];
+    try {
+        $comp_stmt = $pdo->query("
+            SELECT tc.*, u.username AS reported_by_username, u.full_name AS reported_by_fullname
+            FROM truck_complaints tc
+            LEFT JOIN users u ON u.id = tc.reported_by
+            WHERE tc.status != 'resolved'
+            ORDER BY CASE tc.urgency_level WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, tc.created_at DESC
+        ");
+        foreach ($comp_stmt->fetchAll(PDO::FETCH_ASSOC) as $comp) {
+            $complaints_by_truck[$comp['truck_id']][] = $comp;
+        }
+    } catch (Throwable $e) {
+        // Fallback if table not yet migrated
+    }
+
     foreach ($trucks as &$t) {
         $t['onboard_tools'] = get_truck_onboard_assets($pdo, (int)$t['id']);
+        $t['active_complaints'] = $complaints_by_truck[$t['id']] ?? [];
+        $t['active_complaints_count'] = count($t['active_complaints']);
     }
     unset($t);
 

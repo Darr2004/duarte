@@ -1,43 +1,38 @@
 <?php
 /**
- * DuaRTE — Multi-criteria priority scoring for pending requisitions.
+ * DuaRTE — Practical Multi-Criteria Decision Analysis (MCDA) Priority Scoring
  *
- * requisition/pending.php used to list requests in pure "oldest first"
- * order. That's fine until two people want the same scarce item at
- * once — then submission order alone can hand out the last jack to
- * whoever happened to click first, ahead of someone whose need is
- * more urgent or who has never once returned something late.
+ * Operational Trucking Decision Matrix:
+ *   1. Sira ng Sasakyan / Urgency (Vehicle Defect Urgency: 45%)
+ *      - Gaano kalala ang sira ng truck batay sa Complaints Checklist
+ *        (Emergency breakdown / tirik tulad ng starter relay, makina, preno
+ *        vs. routine preventive maintenance / oil change).
+ *   2. Schedule ng Biyahe (Trip / Dispatch Schedule: 35%)
+ *      - Status ng biyahe: nasiraan sa kalsada / on-trip, nakatakdang
+ *        aalis na delivery dispatch, o nakatambay sa garahe.
+ *   3. Rekord ng Driver (Driver Accountability / Trust: 20%)
+ *      - Kasaysayan ng driver sa maayos at maagap na pagsasauli ng
+ *        hiniram na tools mula sa bodega (walang overdue o nawawalang gamit).
  *
- * This scores each pending requisition on three criteria:
- *
- *   - Stock (Scarcity: 45%) — how tight supply is for what it's asking for,
- *                      i.e. requested qty vs. what's actually left
- *                      once other pending/approved requests are
- *                      accounted for (reserved_stock_for()).
- *   - Demand (Contention: 35%) — how many other requesters currently
- *                      have a pending requisition for the same item.
- *   - Trust (Reliability: 20%) — the requester's track record with
- *                      borrowed tools (late returns and missing loans).
- *
- * A Field Supervisor can also manually mark a requisition
- * `manual_urgent` with a required, logged reason (requisition/view.php).
- *
- * Each is normalized to 0–1 and combined with weights into one 0–100
- * score.
+ * Automatically combines criteria into a 0–100 composite score to rank
+ * pending requisitions in real-time.
  */
 
 require_once __DIR__ . '/loans.php';
 
-const PRIORITY_WEIGHT_SCARCITY    = 0.45;
-const PRIORITY_WEIGHT_CONTENTION  = 0.35;
-const PRIORITY_WEIGHT_RELIABILITY = 0.20;
+const PRIORITY_WEIGHT_URGENCY     = 0.45; // Sira ng Sasakyan / Breakdown Urgency
+const PRIORITY_WEIGHT_TRIP        = 0.35; // Schedule ng Biyahe / Dispatch Schedule
+const PRIORITY_WEIGHT_TRUST       = 0.20; // Rekord ng Driver / Accountability
 
-// A tool that's still missing counts this many times worse than one
-// late return that eventually came back — see get_missing_loan_counts().
+// Aliases for full backward compatibility
+const PRIORITY_WEIGHT_SCARCITY    = PRIORITY_WEIGHT_URGENCY;
+const PRIORITY_WEIGHT_CONTENTION  = PRIORITY_WEIGHT_TRIP;
+const PRIORITY_WEIGHT_RELIABILITY = PRIORITY_WEIGHT_TRUST;
+
 const PRIORITY_MISSING_LOAN_WEIGHT = 2;
 
 /**
- * Retrieve dynamic MCDA weights from system_settings, or fallback to default constants.
+ * Retrieve dynamic MCDA weights from system_settings, or fallback to defaults.
  */
 function get_mcda_weights(PDO $pdo): array
 {
@@ -47,9 +42,12 @@ function get_mcda_weights(PDO $pdo): array
     }
 
     $weights = [
-        'scarcity'    => PRIORITY_WEIGHT_SCARCITY,
-        'contention'  => PRIORITY_WEIGHT_CONTENTION,
-        'reliability' => PRIORITY_WEIGHT_RELIABILITY,
+        'urgency'     => PRIORITY_WEIGHT_URGENCY,
+        'trip'        => PRIORITY_WEIGHT_TRIP,
+        'trust'       => PRIORITY_WEIGHT_TRUST,
+        'scarcity'    => PRIORITY_WEIGHT_URGENCY,
+        'contention'  => PRIORITY_WEIGHT_TRIP,
+        'reliability' => PRIORITY_WEIGHT_TRUST,
         'preset'      => 'standard',
     ];
 
@@ -57,25 +55,37 @@ function get_mcda_weights(PDO $pdo): array
         $stmt = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key LIKE 'mcda_%'");
         $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
         if ($rows) {
-            if (isset($rows['mcda_weight_scarcity']) && is_numeric($rows['mcda_weight_scarcity'])) {
-                $weights['scarcity'] = max(0.0, min(1.0, (float)$rows['mcda_weight_scarcity']));
+            $w_u = $rows['mcda_weight_urgency'] ?? $rows['mcda_weight_scarcity'] ?? null;
+            if ($w_u !== null && is_numeric($w_u)) {
+                $weights['urgency']  = max(0.0, min(1.0, (float)$w_u));
+                $weights['scarcity'] = $weights['urgency'];
             }
-            if (isset($rows['mcda_weight_contention']) && is_numeric($rows['mcda_weight_contention'])) {
-                $weights['contention'] = max(0.0, min(1.0, (float)$rows['mcda_weight_contention']));
+
+            $w_t = $rows['mcda_weight_trip'] ?? $rows['mcda_weight_contention'] ?? null;
+            if ($w_t !== null && is_numeric($w_t)) {
+                $weights['trip']       = max(0.0, min(1.0, (float)$w_t));
+                $weights['contention'] = $weights['trip'];
             }
-            if (isset($rows['mcda_weight_reliability']) && is_numeric($rows['mcda_weight_reliability'])) {
-                $weights['reliability'] = max(0.0, min(1.0, (float)$rows['mcda_weight_reliability']));
+
+            $w_tr = $rows['mcda_weight_trust'] ?? $rows['mcda_weight_reliability'] ?? null;
+            if ($w_tr !== null && is_numeric($w_tr)) {
+                $weights['trust']       = max(0.0, min(1.0, (float)$w_tr));
+                $weights['reliability'] = $weights['trust'];
             }
+
             if (isset($rows['mcda_active_preset'])) {
                 $weights['preset'] = $rows['mcda_active_preset'];
             }
 
             // Normalize weights dynamically so their sum strictly equals 1.0 (100%)
-            $total_w = $weights['scarcity'] + $weights['contention'] + $weights['reliability'];
+            $total_w = $weights['urgency'] + $weights['trip'] + $weights['trust'];
             if ($total_w > 0) {
-                $weights['scarcity']    = round($weights['scarcity'] / $total_w, 4);
-                $weights['contention']  = round($weights['contention'] / $total_w, 4);
-                $weights['reliability'] = round($weights['reliability'] / $total_w, 4);
+                $weights['urgency']     = round($weights['urgency'] / $total_w, 4);
+                $weights['trip']        = round($weights['trip'] / $total_w, 4);
+                $weights['trust']       = round($weights['trust'] / $total_w, 4);
+                $weights['scarcity']    = $weights['urgency'];
+                $weights['contention']  = $weights['trip'];
+                $weights['reliability'] = $weights['trust'];
             }
         }
     } catch (Throwable $e) {
@@ -87,13 +97,99 @@ function get_mcda_weights(PDO $pdo): array
 }
 
 /**
- * Scores every currently-pending requisition and returns them ranked
- * highest-priority first. Each returned row keeps its original
- * columns plus: score (0-100), and the per-criterion 0-1 values that
- * fed into it, so the UI can show *why* something ranked where it did
- * instead of just a bare number.
+ * Retrieve dynamic Complaint Urgency Matrix from system_settings, or fallback to standard defaults.
+ */
+function get_complaint_urgency_matrix(PDO $pdo): array
+{
+    static $cached_matrix = null;
+    if ($cached_matrix !== null) {
+        return $cached_matrix;
+    }
+
+    $defaults = [
+        'emergency_keywords' => 'starter relay, startic realy, ayaw mag-start, preno, brake failure, air leak, overheat, overheating, tirik, makina, bagsak makina',
+        'medium_keywords'    => 'alternator, battery drain, low battery, pudpod gulong, flat tire, suspension, pang-ilalim, maingay na makina, tagas langis, tagas',
+        'routine_keywords'   => 'change oil, regular pms, preventive maintenance, basag salamin, sidemirror, wiper, pundi ilaw, busina, body repair',
+        'score_emergency'    => 1.0,
+        'score_medium'       => 0.75,
+        'score_routine'      => 0.40,
+        'score_baseline'     => 0.30,
+    ];
+
+    try {
+        $stmt = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key LIKE 'mcda_complaint_%'");
+        $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        if ($rows) {
+            if (!empty($rows['mcda_complaint_emergency'])) $defaults['emergency_keywords'] = $rows['mcda_complaint_emergency'];
+            if (!empty($rows['mcda_complaint_medium']))    $defaults['medium_keywords']    = $rows['mcda_complaint_medium'];
+            if (!empty($rows['mcda_complaint_routine']))   $defaults['routine_keywords']   = $rows['mcda_complaint_routine'];
+            if (isset($rows['mcda_complaint_score_emergency'])) $defaults['score_emergency'] = (float)$rows['mcda_complaint_score_emergency'];
+            if (isset($rows['mcda_complaint_score_medium']))    $defaults['score_medium']    = (float)$rows['mcda_complaint_score_medium'];
+            if (isset($rows['mcda_complaint_score_routine']))   $defaults['score_routine']   = (float)$rows['mcda_complaint_score_routine'];
+            if (isset($rows['mcda_complaint_score_baseline']))  $defaults['score_baseline']  = (float)$rows['mcda_complaint_score_baseline'];
+        }
+    } catch (Throwable $e) {}
+
+    $cached_matrix = $defaults;
+    return $defaults;
+}
+
+/**
+ * Classify a vehicle complaint text/level into an urgency tier and score
+ * based on the Admin's configured criteria.
+ */
+function classify_complaint_urgency(string $text, string $level, array $matrix): array
+{
+    $text_lower  = strtolower(trim($text));
+    $level_lower = strtolower(trim($level));
+
+    // Keyword arrays
+    $em_keys = array_filter(array_map('trim', explode(',', strtolower($matrix['emergency_keywords']))));
+    $med_keys = array_filter(array_map('trim', explode(',', strtolower($matrix['medium_keywords']))));
+    $rt_keys = array_filter(array_map('trim', explode(',', strtolower($matrix['routine_keywords']))));
+
+    // 1. Explicit 'high' / 'emergency' / 'breakdown' level or match with Emergency keywords
+    if (in_array($level_lower, ['high', 'emergency', 'breakdown', 'critical'], true)) {
+        return ['tier' => 'emergency', 'score' => (float)$matrix['score_emergency'], 'label' => 'Emergency / Mataas'];
+    }
+    foreach ($em_keys as $k) {
+        if ($k !== '' && strpos($text_lower, $k) !== false) {
+            return ['tier' => 'emergency', 'score' => (float)$matrix['score_emergency'], 'label' => 'Emergency / Mataas'];
+        }
+    }
+
+    // 2. Explicit 'medium' level or match with Medium keywords
+    if ($level_lower === 'medium') {
+        return ['tier' => 'medium', 'score' => (float)$matrix['score_medium'], 'label' => 'Katamtaman'];
+    }
+    foreach ($med_keys as $k) {
+        if ($k !== '' && strpos($text_lower, $k) !== false) {
+            return ['tier' => 'medium', 'score' => (float)$matrix['score_medium'], 'label' => 'Katamtaman'];
+        }
+    }
+
+    // 3. Explicit 'low' / 'routine' level or match with Routine keywords
+    if (in_array($level_lower, ['low', 'routine'], true)) {
+        return ['tier' => 'routine', 'score' => (float)$matrix['score_routine'], 'label' => 'Routine / Mababa'];
+    }
+    foreach ($rt_keys as $k) {
+        if ($k !== '' && strpos($text_lower, $k) !== false) {
+            return ['tier' => 'routine', 'score' => (float)$matrix['score_routine'], 'label' => 'Routine / Mababa'];
+        }
+    }
+
+    // Default if non-empty complaint has no matching keyword
+    if ($text_lower !== '') {
+        return ['tier' => 'medium', 'score' => (float)$matrix['score_medium'], 'label' => 'Katamtaman'];
+    }
+
+    return ['tier' => 'baseline', 'score' => (float)$matrix['score_baseline'], 'label' => 'Normal Routine'];
+}
+
+/**
+ * Scores every currently-pending requisition and returns them ranked highest-priority first.
  *
- * @param array $requisitions rows from requisitions (must include id, created_at, requester_id)
+ * @param array $requisitions rows from requisitions (must include id, requester_id)
  */
 function score_pending_requisitions(PDO $pdo, array $requisitions): array
 {
@@ -101,206 +197,148 @@ function score_pending_requisitions(PDO $pdo, array $requisitions): array
         return [];
     }
 
-    $mcda_weights  = get_mcda_weights($pdo);
-    $w_scarcity    = $mcda_weights['scarcity'];
-    $w_contention  = $mcda_weights['contention'];
-    $w_reliability = $mcda_weights['reliability'];
+    $mcda_weights = get_mcda_weights($pdo);
+    $w_urgency    = $mcda_weights['urgency'];
+    $w_trip       = $mcda_weights['trip'];
+    $w_trust      = $mcda_weights['trust'];
 
-    $late_counts = get_late_return_counts($pdo);
+    $late_counts    = get_late_return_counts($pdo);
     $missing_counts = get_missing_loan_counts($pdo);
-    $ids = array_column($requisitions, 'id');
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
-    // Line items for every candidate requisition in one query, rather
-    // than one query per requisition. variant_selected is pulled too:
-    // items with variant_label (fuses, PPE sizes, ...) keep separate
-    // stock and reservations *per variant* (see available_stock_for()
-    // in includes/functions.php) — scoring by item_id alone would mix
-    // unrelated variants' stock together.
-    $stmt = $pdo->prepare(
-        "SELECT requisition_id, item_id, variant_selected, quantity_requested
-         FROM requisition_items
-         WHERE requisition_id IN ($placeholders) AND item_id IS NOT NULL"
-    );
-    $stmt->execute($ids);
-    $lines_by_req = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $lines_by_req[$row['requisition_id']][] = $row;
-    }
+    // Collect truck IDs to fetch truck info and complaints in bulk
+    $truck_ids = array_values(array_unique(array_filter(array_column($requisitions, 'truck_id'))));
+    $trucks_map = [];
+    $truck_complaints_map = [];
 
-    // Key a line by item + variant so different variants of the same
-    // item never share a stock/contention bucket. Matches the null-vs-
-    // value split reserved_stock_for() already uses.
-    $line_key = fn(array $line): string => $line['item_id'] . '::' . ($line['variant_selected'] ?? '');
-
-    // Distinct items touched by any candidate, so stock levels and
-    // contention counts can be looked up once per item, not once per line.
-    $item_ids = array_values(array_unique(array_filter(array_merge(
-        ...array_map(fn($ls) => array_column($ls, 'item_id'), $lines_by_req ?: [[]])
-    ))));
-
-    $on_hand_by_item   = [];  // item_id => items.quantity_on_hand (cross-variant total; also the
-                               // right number for items with no variant_label at all)
-    $on_hand_by_key    = [];  // "item_id::variant_value" => that variant's own quantity_on_hand
-    $reserved_by_key   = [];  // "item_id::variant_selected" (variant_selected may be '') => reserved qty, everyone
-    $reserved_by_key_requester = []; // same key => [requester_id => that requester's own reserved qty]
-    $pending_requesters_by_key = []; // same key => count of DISTINCT REQUESTERS with a pending requisition wanting it
-    if ($item_ids) {
-        $ph = implode(',', array_fill(0, count($item_ids), '?'));
-
-        $stmt = $pdo->prepare("SELECT id, quantity_on_hand FROM items WHERE id IN ($ph)");
-        $stmt->execute($item_ids);
-        foreach ($stmt->fetchAll() as $row) {
-            $on_hand_by_item[$row['id']] = (int)$row['quantity_on_hand'];
+    if ($truck_ids) {
+        $ph_trucks = implode(',', array_fill(0, count($truck_ids), '?'));
+        
+        // Fetch truck status
+        $t_stmt = $pdo->prepare("SELECT id, plate_number, model, status FROM trucks WHERE id IN ($ph_trucks)");
+        $t_stmt->execute($truck_ids);
+        foreach ($t_stmt->fetchAll() as $t) {
+            $trucks_map[$t['id']] = $t;
         }
 
-        // Per-variant stock, for lines whose item has variant_label set.
-        // Falls back to on_hand_by_item below for lines with no variant.
-        $stmt = $pdo->prepare("SELECT item_id, variant_value, quantity_on_hand FROM item_variants WHERE item_id IN ($ph)");
-        $stmt->execute($item_ids);
-        foreach ($stmt->fetchAll() as $row) {
-            $on_hand_by_key[$row['item_id'] . '::' . $row['variant_value']] = (int)$row['quantity_on_hand'];
-        }
-
-        // Reserved qty, batched in one query and grouped by variant AND
-        // requester (mirrors reserved_stock_for()'s IS NULL / = :variant
-        // split, plus a per-requester breakdown). The per-requester
-        // breakdown lets the scoring loop below exclude a requester's
-        // OWN total reservation for an item — across every pending/
-        // approved requisition they have for it, not just the one line
-        // being scored. Without that, a requester who splits one need
-        // into several duplicate requisitions for the same item only
-        // had their current line's own qty excluded, so their other
-        // duplicates counted as "competing" reservations and inflated
-        // their own scarcity score — the more duplicates, the higher
-        // it climbed.
-        $stmt = $pdo->prepare(
-            "SELECT ri.item_id, ri.variant_selected, r.requester_id, SUM(ri.quantity_requested) reserved
-             FROM requisition_items ri
-             JOIN requisitions r ON r.id = ri.requisition_id
-             WHERE ri.item_id IN ($ph) AND r.status IN ('pending', 'approved')
-             GROUP BY ri.item_id, ri.variant_selected, r.requester_id"
-        );
-        $stmt->execute($item_ids);
-        $reserved_by_key_requester = []; // key => [requester_id => reserved]
-        foreach ($stmt->fetchAll() as $row) {
-            $key = $row['item_id'] . '::' . ($row['variant_selected'] ?? '');
-            $reserved_by_key[$key] = ($reserved_by_key[$key] ?? 0) + (int)$row['reserved'];
-            $reserved_by_key_requester[$key][(int)$row['requester_id']] = (int)$row['reserved'];
-        }
-
-        // Contention, grouped by variant too — a request for a 10A
-        // fuse doesn't compete with one for a 30A fuse even though
-        // both are the same item_id. Counts DISTINCT REQUESTERS, not
-        // distinct requisitions — otherwise one requester filing
-        // several duplicate requisitions for the same scarce item
-        // inflated the contention score for their own requests (and
-        // everyone else's) just by existing, regardless of whether any
-        // other person actually wanted the item.
-        $stmt = $pdo->prepare(
-            "SELECT ri.item_id, ri.variant_selected, COUNT(DISTINCT r.requester_id) c
-             FROM requisition_items ri
-             JOIN requisitions r ON r.id = ri.requisition_id
-             WHERE ri.item_id IN ($ph) AND r.status = 'pending'
-             GROUP BY ri.item_id, ri.variant_selected"
-        );
-        $stmt->execute($item_ids);
-        foreach ($stmt->fetchAll() as $row) {
-            $pending_requesters_by_key[$row['item_id'] . '::' . ($row['variant_selected'] ?? '')] = (int)$row['c'];
+        // Fetch active complaints (from truck_complaints table if exists)
+        try {
+            $c_stmt = $pdo->prepare(
+                "SELECT truck_id, urgency_level, complaint_text 
+                 FROM truck_complaints 
+                 WHERE truck_id IN ($ph_trucks) AND status != 'resolved'"
+            );
+            $c_stmt->execute($truck_ids);
+            foreach ($c_stmt->fetchAll() as $comp) {
+                $truck_complaints_map[$comp['truck_id']][] = $comp;
+            }
+        } catch (Throwable $e) {
+            // Table might not exist in old environments
         }
     }
 
     $scored = [];
+    $complaint_matrix = get_complaint_urgency_matrix($pdo);
+
     foreach ($requisitions as $r) {
-        $lines = $lines_by_req[$r['id']] ?? [];
+        $truck_id = $r['truck_id'] ?? null;
+        $truck = $truck_id ? ($trucks_map[$truck_id] ?? null) : null;
+        $complaints = $truck_id ? ($truck_complaints_map[$truck_id] ?? []) : [];
 
-        // --- Stock (Scarcity): Robust line-weighted calculation
-        // Blends 70% quantity-weighted average with 30% peak item scarcity.
-        // Prevents a requester from artificially gaming the MCDA score by
-        // appending 1 unit of a scarce item to a massive bulk order of common goods.
-        $scarcity_peak = 0.0;
-        $scarcity_weighted_sum = 0.0;
-        $total_qty = 0;
+        // -------------------------------------------------------------
+        // Criterion 1: Sira ng Sasakyan / Urgency (0.0 to 1.0)
+        // -------------------------------------------------------------
+        $urgency = (float)$complaint_matrix['score_baseline']; // Baseline for routine requests
 
-        foreach ($lines as $line) {
-            $key = $line_key($line);
-            // A variant's own stock if this line picked one and the
-            // item actually has per-variant rows; otherwise the
-            // item's own (shared) total.
-            $on_hand = $on_hand_by_key[$key] ?? $on_hand_by_item[$line['item_id']] ?? 0;
-            $reserved_total = $reserved_by_key[$key] ?? 0; // includes this requester's own reservations
-            $reserved_own   = $reserved_by_key_requester[$key][$r['requester_id']] ?? 0;
-            $raw_qty = max(1, (int)$line['quantity_requested']);
-
-            // Cap the quantity used for scoring at total on-hand: a
-            // request for more than the entire stock isn't scored any
-            // scarcer than a request for all of it.
-            $capped_qty = min($raw_qty, max(1, $on_hand));
-
-            $reserved_others = max(0, $reserved_total - $reserved_own);
-            $remaining_before_this = max(0, $on_hand - $reserved_others);
-            $ratio = $remaining_before_this > 0
-                ? min(1.0, $capped_qty / $remaining_before_this)
-                : 1.0;
-
-            $scarcity_peak = max($scarcity_peak, $ratio);
-            $scarcity_weighted_sum += ($ratio * $raw_qty);
-            $total_qty += $raw_qty;
+        if (!empty($r['manual_urgent'])) {
+            $urgency = (float)$complaint_matrix['score_emergency'];
         }
 
-        $scarcity_avg = ($total_qty > 0) ? ($scarcity_weighted_sum / $total_qty) : $scarcity_peak;
-        $scarcity = min(1.0, (0.70 * $scarcity_avg) + (0.30 * $scarcity_peak));
-
-        // --- Demand (Contention): Robust line-weighted calculation
-        // Blends 70% quantity-weighted average contention with 30% peak contention.
-        $contention_peak = 0.0;
-        $contention_weighted_sum = 0.0;
-        foreach ($lines as $line) {
-            $count = $pending_requesters_by_key[$line_key($line)] ?? 1;
-            $contenders = max(0, $count - 1); // exclude this requester
-            $c_ratio = min(1.0, $contenders / 3);
-
-            $raw_qty = max(1, (int)$line['quantity_requested']);
-            $contention_peak = max($contention_peak, $c_ratio);
-            $contention_weighted_sum += ($c_ratio * $raw_qty);
+        // Evaluate requisition's own purpose / complaint against Admin's Matrix
+        if (!empty($r['purpose'])) {
+            $p_res = classify_complaint_urgency($r['purpose'], '', $complaint_matrix);
+            if ($p_res['score'] > $urgency) {
+                $urgency = $p_res['score'];
+            }
         }
-        $contention_avg = ($total_qty > 0) ? ($contention_weighted_sum / $total_qty) : $contention_peak;
-        $contention = min(1.0, (0.70 * $contention_avg) + (0.30 * $contention_peak));
 
-        // --- Trust (Reliability): fewer past late returns and fewer currently-
-        // missing loans = higher score.
+        // Evaluate active complaints on the assigned truck via Admin's Matrix
+        if ($complaints) {
+            $max_urgency = (float)$complaint_matrix['score_baseline'];
+            foreach ($complaints as $c) {
+                $c_res = classify_complaint_urgency($c['complaint_text'] ?? '', $c['urgency_level'] ?? '', $complaint_matrix);
+                if ($c_res['score'] > $max_urgency) {
+                    $max_urgency = $c_res['score'];
+                }
+            }
+            $urgency = max($urgency, $max_urgency);
+        }
+
+        // Flagged as maintenance repair
+        if (!empty($r['is_maintenance_request'])) {
+            $urgency = max($urgency, (float)$complaint_matrix['score_medium']);
+        }
+
+        // Truck currently in shop
+        if ($truck && $truck['status'] === 'under_maintenance') {
+            $urgency = max($urgency, 0.65);
+        }
+
+        // -------------------------------------------------------------
+        // Criterion 2: Schedule ng Biyahe / Trip Priority (0.0 to 1.0)
+        // -------------------------------------------------------------
+        $trip = 0.35; // Baseline if no truck assigned
+        if ($truck) {
+            if ($truck['status'] === 'on_trip') {
+                $trip = 1.0; // Stranded on road delivery trip (Top emergency)
+            } elseif ($truck['status'] === 'available') {
+                $trip = 0.65; // Ready for immediate fleet dispatch
+            } elseif ($truck['status'] === 'under_maintenance') {
+                $trip = 0.50; // In shop waiting to re-enter service
+            }
+        }
+
+        // -------------------------------------------------------------
+        // Criterion 3: Rekord ng Driver / Trust (0.0 to 1.0)
+        // -------------------------------------------------------------
         $late = $late_counts[$r['requester_id']] ?? 0;
         $missing = $missing_counts[$r['requester_id']] ?? 0;
         $penalty = $late + (PRIORITY_MISSING_LOAN_WEIGHT * $missing);
-        $reliability = 1 / (1 + ($penalty / 3));
+        $trust = 1 / (1 + ($penalty / 3));
 
+        // -------------------------------------------------------------
+        // Composite MCDA Weighted Score (0 to 100)
+        // -------------------------------------------------------------
         $score = 100 * (
-            $w_scarcity    * $scarcity +
-            $w_contention  * $contention +
-            $w_reliability * $reliability
+            $w_urgency * $urgency +
+            $w_trip    * $trip +
+            $w_trust   * $trust
         );
 
         $scored[] = $r + [
             'priority_score'       => round($score, 1),
-            'priority_stock'       => round($scarcity * 100),
-            'priority_demand'      => round($contention * 100),
-            'priority_trust'       => round($reliability * 100),
+            'priority_urgency'     => round($urgency * 100),
+            'priority_trip'        => round($trip * 100),
+            'priority_trust'       => round($trust * 100),
+            // Backward compatibility aliases
+            'priority_stock'       => round($urgency * 100),
+            'priority_demand'      => round($trip * 100),
+            'priority_scarcity'    => round($urgency * 100),
+            'priority_contention'  => round($trip * 100),
+            'priority_reliability' => round($trust * 100),
             'mcda_weights'         => [
-                'scarcity'    => round($w_scarcity * 100),
-                'contention'  => round($w_contention * 100),
-                'reliability' => round($w_reliability * 100),
+                'urgency'     => round($w_urgency * 100),
+                'trip'        => round($w_trip * 100),
+                'trust'       => round($w_trust * 100),
+                'scarcity'    => round($w_urgency * 100),
+                'contention'  => round($w_trip * 100),
+                'reliability' => round($w_trust * 100),
                 'preset'      => $mcda_weights['preset'] ?? 'standard',
             ],
-            // Aliases kept for backward compatibility if referenced
-            'priority_scarcity'    => round($scarcity * 100),
-            'priority_contention'  => round($contention * 100),
-            'priority_reliability' => round($reliability * 100),
         ];
     }
 
     usort($scored, function (array $a, array $b): int {
-        // Manually-flagged urgent requests always rank first — a human
-        // judgment call the algorithm can't weigh against a score.
+        // Manually-flagged urgent requests always rank first
         $a_urgent = !empty($a['manual_urgent']);
         $b_urgent = !empty($b['manual_urgent']);
         if ($a_urgent !== $b_urgent) {
@@ -310,21 +348,23 @@ function score_pending_requisitions(PDO $pdo, array $requisitions): array
         if ($score_cmp !== 0) {
             return $score_cmp;
         }
-        // Tie-breaker: oldest request first (FIFO)
+        // Tie-breaker: oldest request first
         return strcmp($a['created_at'] ?? '', $b['created_at'] ?? '');
     });
 
     return $scored;
 }
 
-/** Badge tone for a 0-100 priority score, matching existing badge classes. */
+/**
+ * Returns a CSS modifier class for a priority score badge.
+ */
 function priority_score_class(float $score): string
 {
-    if ($score >= 66) {
-        return 'inactive'; // reuses the existing "red/urgent" badge tone
+    if ($score >= 70) {
+        return 'badge-danger';
     }
-    if ($score >= 33) {
-        return 'role'; // existing "amber/neutral" tone
+    if ($score >= 40) {
+        return 'badge-warning';
     }
-    return 'active'; // existing "green/low-pressure" tone
+    return 'badge-success';
 }

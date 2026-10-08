@@ -208,6 +208,12 @@ function csrf_check(?string $submitted): bool
         && hash_equals($_SESSION['csrf_token'], $submitted);
 }
 
+/** Render a hidden HTML input with the current CSRF token. */
+function csrf_field(): string
+{
+    return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
+}
+
 // ---- Mobile API tokens ----
 // api/login.php mints one of these and every other api/*.php endpoint
 // requires it — the client's own user_id/role fields are never trusted
@@ -263,7 +269,7 @@ function api_authenticate(PDO $pdo): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT u.* FROM mobile_tokens mt
+        'SELECT u.*, mt.last_used_at AS token_last_used_at FROM mobile_tokens mt
            JOIN users u ON u.id = mt.user_id
           WHERE mt.token = :token AND mt.expires_at > NOW() AND u.status = "active"
           LIMIT 1'
@@ -274,8 +280,18 @@ function api_authenticate(PDO $pdo): ?array
         return null;
     }
 
-    $touch = $pdo->prepare('UPDATE mobile_tokens SET last_used_at = NOW() WHERE token = :token');
-    $touch->execute(['token' => $token]);
+    // Throttle token timestamp updates to at most once every 5 minutes
+    // to prevent row-lock wait timeouts during rapid background polling (e.g. notifications.php)
+    $lastUsed = !empty($user['token_last_used_at']) ? strtotime($user['token_last_used_at']) : 0;
+    if ((time() - $lastUsed) > 300) {
+        try {
+            $touch = $pdo->prepare('UPDATE mobile_tokens SET last_used_at = NOW() WHERE token = :token');
+            $touch->execute(['token' => $token]);
+        } catch (Exception $e) {
+            // Non-critical metadata update failure should not break the request
+        }
+    }
+    unset($user['token_last_used_at']);
 
     $user['api_token'] = $token;
     return $user;

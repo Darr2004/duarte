@@ -54,6 +54,26 @@ function log_audit_event(
 }
 
 /**
+ * Backward-compatible helper for audit logging.
+ */
+function audit_log(
+    PDO $pdo,
+    mixed $actor,
+    string $action,
+    string $description,
+    string $entity_type = 'system',
+    ?int $entity_id = null
+): void {
+    $actor_array = null;
+    if (is_array($actor)) {
+        $actor_array = $actor;
+    } elseif (is_numeric($actor)) {
+        $actor_array = ['id' => (int)$actor];
+    }
+    log_audit_event($pdo, $actor_array, $action, $entity_type, $entity_id, $description);
+}
+
+/**
  * Human-readable label for an audit action tag, for display in the
  * admin audit log page and its filter dropdown.
  */

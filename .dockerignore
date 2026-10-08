@@ -1,8 +1,14 @@
 .git
 .gitignore
+.dockerignore
 .idea
 *.apk
 *.bat
 *.vbs
+*.md
+*.png
+*.dart
 scratch/
 database/seed_*.sql
+render.yaml
+duarte_db_export.sql
